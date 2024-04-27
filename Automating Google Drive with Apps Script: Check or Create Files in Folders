@@ -1,0 +1,19 @@
+function checkOrCreateFile(folderId, fileName, mimeType) {
+  // Get the folder by ID
+  var folder = DriveApp.getFolderById(folderId);
+  // Search for files with the specified name in the folder
+  var files = folder.getFilesByName(fileName);
+  
+  // Check if the file exists
+  if (files.hasNext()) {
+    // File exists, return the file ID
+    var file = files.next();
+    Logger.log("File exists: " + file.getName() + ", ID: " + file.getId());
+    return file.getId();
+  } else {
+    // File does not exist, create a new file
+    var file = folder.createFile(fileName, '', mimeType);
+    Logger.log("File created: " + file.getName() + ", ID: " + file.getId());
+    return file.getId();
+  }
+}
