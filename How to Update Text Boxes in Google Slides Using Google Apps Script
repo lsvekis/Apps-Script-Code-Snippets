@@ -1,0 +1,18 @@
+function updateTextBoxes() {
+  var presentation = SlidesApp.getActivePresentation();
+  var slides = presentation.getSlides();
+  
+  slides.forEach(function(slide, index) {
+    var shapes = slide.getShapes();
+    shapes.forEach(function(shape) {
+      if (shape.getShapeType() === SlidesApp.ShapeType.TEXT_BOX) {
+        // Accessing the text range of the text box
+        var textRange = shape.getText();
+        // Clear existing text
+        textRange.clear();
+        // Set new text content
+        textRange.setText('New text content for slide ' + (index + 1));
+      }
+    });
+  });
+}
