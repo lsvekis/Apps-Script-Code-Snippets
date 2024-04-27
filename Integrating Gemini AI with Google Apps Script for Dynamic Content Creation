@@ -1,0 +1,33 @@
+function sendPromptToGeminiAI(q) {
+  const apiKey = 'YOUR_API_KEY';  // Replace with your actual API key from Google Cloud
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`;
+
+  const payload = {
+    contents: [{ parts: [{ text: q }] }]
+  };
+
+  const options = {
+    method: 'POST',
+    contentType: 'application/json',
+    payload: JSON.stringify(payload)
+  };
+
+  const response = UrlFetchApp.fetch(url, options);
+  const jsonResponse = JSON.parse(response.getContentText());
+
+  if (jsonResponse.candidates && jsonResponse.candidates.length > 0) {
+    return jsonResponse.candidates[0].content.parts.map(part => part.text).join('');
+  }
+  return "No response received.";
+}
+
+function tester() {
+  const prompt = 'create a blog post about Gemini AI and how to use it within Apps Script';
+  const response = sendPromptToGeminiAI(prompt);
+
+  const doc = DocumentApp.create('Gemini AI Generated Document');
+  const body = doc.getBody();
+  body.appendParagraph(response);
+
+  Logger.log(response);  // Log the generated content for debugging
+}
