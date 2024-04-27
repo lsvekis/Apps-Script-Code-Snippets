@@ -1,0 +1,25 @@
+function sendStyledEmails() {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var rows = sheet.getDataRange().getValues();
+  
+  // Skip the header row and start from the second row
+  for (var i = 1; i < rows.length; i++) {
+    var email = rows[i][0];
+    var name = rows[i][1];
+    var message = rows[i][2];
+    var subject = rows[i][3];
+    
+    var htmlBody = `
+      <h1>Hello, ${name}!</h1>
+      <p>${message}</p>
+      <p>Best regards,<br>Your Team</p>
+    `;
+
+    // Send the email
+    MailApp.sendEmail({
+      to: email,
+      subject: subject,
+      htmlBody: htmlBody
+    });
+  }
+}
