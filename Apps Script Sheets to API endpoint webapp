@@ -1,0 +1,17 @@
+function doGet(e) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  const data = sheet.getDataRange().getValues();
+  const jsonData = JSON.stringify(data);
+  
+  return ContentService.createTextOutput(jsonData)
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function setup() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getActiveSheet();
+  sheet.getRange("A1").setValue("Name");
+  sheet.getRange("A2").setValue("Alice");
+  sheet.getRange("A3").setValue("Bob");
+  // Set more initial data as needed
+}
