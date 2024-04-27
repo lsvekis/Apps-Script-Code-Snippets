@@ -1,0 +1,11 @@
+<div style="padding-top: 15px; padding-bottom: 18px; padding-left: 40px; 
+      margin-bottom: 8px; width: 500px; border: 1px solid black;">
+  <form method="get">
+    <input type="text" name="firstname" placeholder="First name" style="margin-right: 10px; 
+      background-color: rgb(252, 242, 231); border: 1px solid black;">
+    <input type="text" name="surname" placeholder="Surname" 
+      style="background-color: rgb(252, 242, 231); border: 1px solid black;">
+    <input type="submit" style="margin-left: 30px; width: 75px; 
+      background-color: rgb(214, 255, 174); border: 1px solid black;">
+  </form>
+</div>
