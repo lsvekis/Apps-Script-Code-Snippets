@@ -1,0 +1,39 @@
+// Define styles using object literals
+const styles = {
+  title: {
+    [DocumentApp.Attribute.FONT_SIZE]: 24,
+    [DocumentApp.Attribute.BOLD]: true,
+    [DocumentApp.Attribute.FOREGROUND_COLOR]: '#0000FF' // Blue color
+  },
+  subtitle: {
+    [DocumentApp.Attribute.FONT_SIZE]: 18,
+    [DocumentApp.Attribute.ITALIC]: true,
+    [DocumentApp.Attribute.FOREGROUND_COLOR]: '#FF0000' // Red color
+  },
+  normalText: {
+    [DocumentApp.Attribute.FONT_SIZE]: 12,
+    [DocumentApp.Attribute.BOLD]: false,
+    [DocumentApp.Attribute.FOREGROUND_COLOR]: '#000000' // Black color
+  }
+};
+
+function styleDocument() {
+  // Open a document by ID or create a new one
+  const doc = DocumentApp.openById('YOUR_DOCUMENT_ID');
+  const body = doc.getBody();
+  
+  // Apply styles to the title
+  const title = body.appendParagraph('This is the Title');
+  title.setAttributes(styles.title);
+  
+  // Apply styles to the subtitle
+  const subtitle = body.appendParagraph('This is the Subtitle');
+  subtitle.setAttributes(styles.subtitle);
+  
+  // Apply styles to normal text
+  const normalText = body.appendParagraph('This is some normal text.');
+  normalText.setAttributes(styles.normalText);
+  
+  // Save and close the document
+  doc.saveAndClose();
+}
