@@ -1,0 +1,37 @@
+function generateTableOfContents() {
+  const doc = DocumentApp.getActiveDocument();
+  const body = doc.getBody();
+
+  // Create a new list for the Table of Contents
+  const toc = body.insertParagraph(0, 'Table of Contents');
+  toc.setHeading(DocumentApp.ParagraphHeading.HEADING1);
+
+  // Add a line break after the ToC title
+  body.insertParagraph(1, '');
+
+  // Keep track of the position to insert the ToC entries
+  let tocIndex = 2;
+
+  // Iterate over all paragraphs to find those with Heading 1
+  const paragraphs = body.getParagraphs();
+  paragraphs.forEach((paragraph) => {
+    if (paragraph.getHeading() === DocumentApp.ParagraphHeading.HEADING1) {
+      // Use the text of the Heading 1 as the ToC entry
+      const text = paragraph.getText();
+      const tocEntry = body.insertParagraph(tocIndex, text);
+
+      // Make the ToC entry a hyperlink that jumps to the Heading 1 position
+      const position = doc.newPosition(paragraph, 0);
+      const bookmark = doc.addBookmark(position);
+      tocEntry.setLinkUrl('#' + bookmark.getId());
+
+      // Increment the position for the next ToC entry
+      tocIndex++;
+    }
+  });
+
+  // Finally, add a visual separator after the ToC
+  if (tocIndex > 2) { // Ensure there's at least one entry in the ToC
+    body.insertParagraph(tocIndex, '-----').setAlignment(DocumentApp.HorizontalAlignment.CENTER);
+  }
+}
