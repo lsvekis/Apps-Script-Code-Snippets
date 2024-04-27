@@ -1,0 +1,41 @@
+function createSlidesFromDoc() {
+  var doc = DocumentApp.getActiveDocument();
+  var body = doc.getBody();
+  
+  var slides = SlidesApp.create(doc.getName() + ' Presentation');
+  var elements = body.getParagraphs();
+  
+  var slide = null;
+  var content = '';
+  
+  elements.forEach(function(element) {
+    var elementType = element.getHeading();
+    // Check if the paragraph is a heading
+    if (elementType !== DocumentApp.ParagraphHeading.NORMAL) {
+      // Create a new slide when a heading is found
+      if (slide && content.trim()) {
+        // Ensure there is content to add and add it to the previous slide
+        var textBox = slide.insertShape(SlidesApp.ShapeType.TEXT_BOX, 100, 100, 600, 300);
+        var textRange = textBox.getText();
+        textRange.setText(content);
+        // Set text style if necessary
+        textRange.getTextStyle().setFontSize(14);
+      }
+      slide = slides.appendSlide(SlidesApp.PredefinedLayout.TITLE_AND_BODY);
+      var titleShape = slide.getShapes()[0]; // Assuming the first shape is the title
+      titleShape.getText().setText(element.getText());
+      content = '';
+    } else {
+      // Accumulate content until a new heading is found
+      content += element.getText() + '\n';
+    }
+  });
+  
+  // Add the last accumulated content to the last slide
+  if (slide && content.trim()) {
+    var textBox = slide.insertShape(SlidesApp.ShapeType.TEXT_BOX, 100, 100, 600, 300);
+    var textRange = textBox.getText();
+    textRange.setText(content);
+    textRange.getTextStyle().setFontSize(14); // Set the font size
+  }
+}
