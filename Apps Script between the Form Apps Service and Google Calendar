@@ -1,0 +1,21 @@
+function setupTrigger() {
+  var form = FormApp.openById('YOUR_FORM_ID');
+  ScriptApp.newTrigger('addEventToCalendar')
+    .forForm(form)
+    .onFormSubmit()
+    .create();
+}
+
+function addEventToCalendar(e) {
+  var formResponse = e.response.getItemResponses();
+  var eventName = formResponse[0].getResponse();
+  var startTime = new Date(formResponse[1].getResponse());
+  var endTime = new Date(formResponse[2].getResponse());
+  var description = formResponse[3].getResponse();
+
+  var calendarId = 'YOUR_CALENDAR_ID';
+  var calendar = CalendarApp.getCalendarById(calendarId);
+  var event = calendar.createEvent(eventName, startTime, endTime, {description: description});
+  
+  Logger.log('Event ID: ' + event.getId());
+}
