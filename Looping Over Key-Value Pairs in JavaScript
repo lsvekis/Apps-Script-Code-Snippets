@@ -1,0 +1,17 @@
+const object = { a: 1, b: 2, c: 3 };
+
+for (const key in object) {
+  if (object.hasOwnProperty(key)) {
+    console.log(`Key: ${key}, Value: ${object[key]}`);
+  }
+}
+const object = { red: "apple", yellow: "banana", green: "pear" };
+
+for (const [key, value] of Object.entries(object)) {
+  console.log(`Key: ${key}, Value: ${value}`);
+}
+const object = { x: 10, y: 20, z: 30 };
+
+Object.entries(object).forEach(([key, value]) => {
+  console.log(`Key: ${key}, Value: ${value}`);
+});
