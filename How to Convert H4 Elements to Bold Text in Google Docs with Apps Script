@@ -1,0 +1,17 @@
+function convertH4ToBoldedText() {
+  var doc = DocumentApp.getActiveDocument();
+  var body = doc.getBody();
+  var searchType = DocumentApp.ParagraphHeading.HEADING4;
+  var foundElements = body.getParagraphs();
+  
+  foundElements.forEach(function(element) {
+    if (element.getHeading() === searchType) {
+      // Change the heading to normal text
+      element.setHeading(DocumentApp.ParagraphHeading.NORMAL);
+      
+      // Get the text range and apply bold formatting
+      var textRange = element.editAsText();
+      textRange.setBold(true);
+    }
+  });
+}
