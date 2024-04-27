@@ -1,0 +1,34 @@
+// URL of the watermark image
+const imageUrl = 'http://www.discoveryvip.com/img/d.png';
+
+function createWatermarkedPDF() {
+  // Create a new Google Document
+  const doc = DocumentApp.create('Watermarked Document');
+  const body = doc.getBody();
+  
+  // Add some initial text
+  body.appendParagraph("This is the main content of the document.");
+
+  // Insert an image watermark
+  var image = body.appendImage(UrlFetchApp.fetch(imageUrl).getBlob());
+
+  // Adjust image size
+  image.setWidth(300); // Example width, adjust as necessary
+  image.setHeight(100); // Example height, adjust as necessary
+
+  // Save and close the document
+  doc.saveAndClose();
+
+  // Convert Google Doc to PDF
+  const docFile = DriveApp.getFileById(doc.getId());
+  const pdfBlob = docFile.getAs('application/pdf').setName(doc.getName() + '.pdf');
+
+  // Save PDF to Drive
+  const pdfFile = DriveApp.createFile(pdfBlob);
+
+  // Optionally delete the temporary Google Doc
+  DriveApp.getFileById(doc.getId()).setTrashed(true);
+
+  // Log the URL of the new PDF
+  Logger.log('PDF created: ' + pdfFile.getUrl());
+}
