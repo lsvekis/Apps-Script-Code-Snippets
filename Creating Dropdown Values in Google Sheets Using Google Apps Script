@@ -1,0 +1,22 @@
+function copyValues() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sourceSheet = ss.getSheetByName('Sheet1');
+  const targetSheet = ss.getSheetByName('Sheet2');
+  
+  const rangeToCopy = sourceSheet.getRange('A1:A5');
+  const valuesToCopy = rangeToCopy.getValues();
+  
+  targetSheet.getRange(1, 1, valuesToCopy.length, valuesToCopy[0].length).setValues(valuesToCopy);
+}
+function createDropdown() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sourceSheet = ss.getSheetByName('Sheet1');
+  const targetSheet = ss.getSheetByName('Sheet2');
+  
+  const rangeToCopy = sourceSheet.getRange('A1:A' + sourceSheet.getLastRow());
+  const valuesToCopy = rangeToCopy.getValues();
+  
+  const dropdownRange = targetSheet.getRange('A1');
+  const rule = SpreadsheetApp.newDataValidation().requireValueInList(valuesToCopy.flat()).build();
+  dropdownRange.setDataValidation(rule);
+}
