@@ -1,0 +1,27 @@
+function checkAllDayEvents() {
+  var calendarId = 'primary'; // Use 'primary' for your primary calendar or specify a different one
+  var calendar = CalendarApp.getCalendarById(calendarId);
+  var dateToCheck = new Date('2024-05-01'); // Set the date you want to check (YYYY-MM-DD)
+
+  // Define the start and end times of the date to check
+  var startTime = new Date(dateToCheck);
+  var endTime = new Date(dateToCheck);
+  endTime.setDate(endTime.getDate() + 1); // Move to the next day
+
+  // Get all events for the specified date range
+  var events = calendar.getEvents(startTime, endTime);
+
+  // Check for all-day events
+  var allDayEvents = events.filter(function(event) {
+    return event.isAllDayEvent();
+  });
+
+  if (allDayEvents.length > 0) {
+    Logger.log('There are all-day events on ' + dateToCheck.toDateString());
+    allDayEvents.forEach(function(event) {
+      Logger.log('Event Title: ' + event.getTitle()); // Logging the title of each all-day event
+    });
+  } else {
+    Logger.log('No all-day events found on ' + dateToCheck.toDateString());
+  }
+}
