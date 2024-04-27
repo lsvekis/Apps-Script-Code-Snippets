@@ -1,0 +1,38 @@
+function insertImagesIntoTable() {
+  // Create a new Google Document
+  const doc = DocumentApp.create('Web Layout Diagram');
+  const body = doc.getBody();
+
+  // URLs of the images
+  const imageUrls = [
+    'https://dummyimage.com/600x400/000/fff&text=Header',
+    'https://dummyimage.com/600x400/ccc/000&text=Sidebar',
+    'https://dummyimage.com/600x400/ddd/000&text=Content'
+  ];
+
+  // Fetch images and store as blobs
+  const images = imageUrls.map(url => UrlFetchApp.fetch(url).getBlob());
+
+  // Insert a table with specific dimensions
+  const table = body.appendTable();
+  const numRows = 2;
+  const numCols = 2;
+
+  // Create cells with placeholder text
+  for (let i = 0; i < numRows; i++) {
+    const row = table.appendTableRow();
+    for (let j = 0; j < numCols; j++) {
+      row.appendTableCell('Placeholder');
+    }
+  }
+
+  // Replace placeholders with images
+  table.getCell(0, 0).clear().appendImage(images[0]);
+  table.getCell(0, 1).clear().appendImage(images[1]);
+  table.getCell(1, 0).clear().appendImage(images[2]);
+
+  // Save and close the document
+  doc.saveAndClose();
+
+  Logger.log('Document created: ' + doc.getUrl());
+}
