@@ -1,0 +1,31 @@
+/**
+ * Squares the input value.
+ *
+ * @param {number} input The value to square.
+ * @return The square of the input value.
+ * @customfunction
+ */
+function SQUARE(input) {
+  if (typeof input !== 'number') {
+    throw 'Input must be a number';
+  }
+  return input * input;
+}
+/**
+ * Calculates the sum of squares of the values in the given range.
+ *
+ * @param {range} range A range of cells to process.
+ * @return The sum of squares of the values.
+ * @customfunction
+ */
+function SUMOFSQUARES(range) {
+  var sum = 0;
+  range.forEach(function(row) {
+    row.forEach(function(cell) {
+      if (typeof cell === 'number') {
+        sum += cell * cell;
+      }
+    });
+  });
+  return sum;
+}
