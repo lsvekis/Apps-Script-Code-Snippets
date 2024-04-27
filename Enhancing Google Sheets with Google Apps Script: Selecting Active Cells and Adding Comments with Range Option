@@ -1,0 +1,16 @@
+function addCommentToActiveCell() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  const cell = sheet.getActiveCell();
+
+  // Set the comment on the active cell
+  const comment = 'Reviewed by user on ' + new Date().toDateString();
+  cell.setNote(comment);
+}
+function addCommentToRange(range) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  const selectedRange = sheet.getRange(range);
+
+  // Set the comment on the selected range
+  const comment = 'Reviewed by user on ' + new Date().toDateString();
+  selectedRange.setNotes(Array(selectedRange.getNumRows()).fill(Array(selectedRange.getNumColumns()).fill(comment)));
+}
