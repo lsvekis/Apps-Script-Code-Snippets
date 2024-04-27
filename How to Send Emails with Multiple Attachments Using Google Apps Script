@@ -1,0 +1,17 @@
+function sendEmailWithAttachments() {
+  var emailAddress = 'recipient@example.com';  // The recipient's email address
+  var subject = 'Email with Multiple Attachments';  // The subject of the email
+  var messageBody = 'Please find attached the documents you requested.';  // The body of the email
+
+  // IDs of the files to attach
+  var fileIds = ['File-ID-1', 'File-ID-2', 'File-ID-3'];  // Replace with actual file IDs from Google Drive
+  
+  var attachments = fileIds.map(function(id) {
+    return DriveApp.getFileById(id).getBlob();
+  });
+
+  // Send the email
+  GmailApp.sendEmail(emailAddress, subject, messageBody, {
+    attachments: attachments
+  });
+}
