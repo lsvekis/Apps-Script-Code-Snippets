@@ -1,0 +1,14 @@
+function addSpaceAboveH3() {
+  var doc = DocumentApp.getActiveDocument();
+  var body = doc.getBody();
+  var paragraphs = body.getParagraphs();
+
+  // Loop through the paragraphs in reverse to avoid disrupting the indexing as new paragraphs are added
+  for (var i = paragraphs.length - 1; i >= 0; i--) {
+    var paragraph = paragraphs[i];
+    if (paragraph.getHeading() === DocumentApp.ParagraphHeading.HEADING3) {
+      // Insert a blank paragraph above the H3 heading
+      body.insertParagraph(i, "");
+    }
+  }
+}
