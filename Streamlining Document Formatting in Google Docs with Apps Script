@@ -1,0 +1,18 @@
+function resetHeadingThreeStyle() {
+  var document = DocumentApp.getActiveDocument();
+  var body = document.getBody();
+  var totalElements = body.getNumChildren();
+
+  for (var i = 0; i < totalElements; i++) {
+    var element = body.getChild(i);
+    if (element.getType() === DocumentApp.ElementType.PARAGRAPH) {
+      var paragraph = element.asParagraph();
+      if (paragraph.getHeading() === DocumentApp.ParagraphHeading.HEADING3) {
+        // Clear all styles
+        paragraph.setAttributes({});
+        // Reapply the Heading 3 style
+        paragraph.setHeading(DocumentApp.ParagraphHeading.HEADING3);
+      }
+    }
+  }
+}
