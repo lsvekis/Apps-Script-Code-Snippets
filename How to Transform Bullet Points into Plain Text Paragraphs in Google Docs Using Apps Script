@@ -1,0 +1,16 @@
+function removeBullets() {
+  var document = DocumentApp.getActiveDocument();
+  var body = document.getBody();
+  var totalElements = body.getNumChildren();
+
+  for (var i = 0; i < totalElements; i++) {
+    var element = body.getChild(i);
+    if (element.getType() === DocumentApp.ElementType.LIST_ITEM) {
+      var text = element.getText();
+      var paragraph = body.insertParagraph(i, text);
+      body.removeChild(element);
+      i--;  // Adjust the index since we remove an element
+      totalElements--;  // Adjust the total number of elements
+    }
+  }
+}
