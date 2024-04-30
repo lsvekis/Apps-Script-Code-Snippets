@@ -1,0 +1,12 @@
+function removeNumberOnlyParagraphs() {
+  var doc = DocumentApp.getActiveDocument();
+  var body = doc.getBody();
+  var paragraphs = body.getParagraphs();
+
+  for (var i = paragraphs.length - 1; i >= 0; i--) {
+    var text = paragraphs[i].getText();
+    if (text.trim().match(/^\d+$/)) {
+      paragraphs[i].removeFromParent();
+    }
+  }
+}
