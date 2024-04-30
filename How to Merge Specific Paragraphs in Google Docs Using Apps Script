@@ -1,0 +1,23 @@
+function mergeExplanationParagraphs() {
+  var document = DocumentApp.getActiveDocument();
+  var body = document.getBody();
+  var totalElements = body.getNumChildren();
+
+  // Iterate through the document elements in reverse order
+  for (var i = totalElements - 1; i >= 0; i--) {
+    var element = body.getChild(i);
+    if (element.getType() === DocumentApp.ElementType.PARAGRAPH) {
+      var text = element.getText().trim();
+      if (text === "Explanation:") {
+        if (i + 1 < totalElements) {
+          var nextElement = body.getChild(i + 1);
+          if (nextElement.getType() === DocumentApp.ElementType.PARAGRAPH) {
+            var nextText = nextElement.getText();
+            body.removeChild(element);
+            nextElement.setText("Explanation: " + nextText);
+          }
+        }
+      }
+    }
+  }
+}
