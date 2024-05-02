@@ -1,0 +1,23 @@
+function convertPDFToText() {
+  const fileId = 'YOUR_PDF_FILE_ID_HERE'; // Replace with your PDF file ID
+  const ocrLanguage = 'en'; // Set OCR language to English
+
+  // Convert PDF to Google Doc using OCR
+  const pdfBlob = DriveApp.getFileById(fileId).getBlob();
+  const doc = Drive.Files.create({
+    name: pdfBlob.getName().replace(/\.pdf$/, ''),
+    mimeType: MimeType.GOOGLE_DOCS
+  }, pdfBlob, {
+    ocr: true,
+    ocrLanguage: ocrLanguage
+  });
+
+  // Extract text and save as a text file
+  const text = DocumentApp.openById(doc.id).getBody().getText();
+  DriveApp.createFile(doc.name + '.txt', text, MimeType.PLAIN_TEXT);
+
+  // Delete the temporary Google Doc
+  DriveApp.getFileById(doc.id).setTrashed(true);
+
+  return text;
+}
