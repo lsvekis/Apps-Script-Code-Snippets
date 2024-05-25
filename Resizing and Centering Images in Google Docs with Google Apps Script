@@ -1,0 +1,48 @@
+function resizeAndCenterImages() {
+  // Open the document by ID. Replace with your document ID.
+  var docId = 'YOUR_DOCUMENT_ID_HERE';
+  var doc = DocumentApp.openById(docId);
+  var body = doc.getBody();
+  
+  // Get the page width in points
+  var pageWidth = doc.getPageWidth();
+  var maxImageWidth = pageWidth * 0.75;
+
+  // Get all the elements in the document
+  var totalElements = body.getNumChildren();
+  
+  for (var i = 0; i < totalElements; i++) {
+    var element = body.getChild(i);
+    
+    if (element.getType() == DocumentApp.ElementType.PARAGRAPH) {
+      var paragraph = element.asParagraph();
+      var numChildren = paragraph.getNumChildren();
+      
+      for (var j = 0; j < numChildren; j++) {
+        var child = paragraph.getChild(j);
+        
+        if (child.getType() == DocumentApp.ElementType.INLINE_IMAGE) {
+          var image = child.asInlineImage();
+          var originalWidth = image.getWidth();
+          var originalHeight = image.getHeight();
+          
+          // Calculate the new dimensions maintaining the aspect ratio
+          var newWidth = maxImageWidth;
+          var newHeight = (newWidth / originalWidth) * originalHeight;
+          
+          // Resize the image
+          image.setWidth(newWidth);
+          image.setHeight(newHeight);
+          
+          // Center the image by wrapping it in a centered paragraph
+          paragraph.removeChild(image);
+          var centeredParagraph = body.insertParagraph(i + 1, "");
+          centeredParagraph.appendInlineImage(image);
+          centeredParagraph.setAlignment(DocumentApp.HorizontalAlignment.CENTER);
+          i++;  // Adjust index to account for newly inserted paragraph
+          break;  // Exit inner loop after processing the image
+        }
+      }
+    }
+  }
+}
