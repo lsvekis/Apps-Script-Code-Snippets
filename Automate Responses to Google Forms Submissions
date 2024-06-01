@@ -1,0 +1,18 @@
+function onFormSubmit(e) {
+  const itemResponses = e.namedValues;
+  const email = itemResponses['Email'][0]; // Assumes there's an "Email" column in the form
+  const name = itemResponses['Name'][0]; // Assumes there's a "Name" column
+
+  MailApp.sendEmail({
+    to: email,
+    subject: "Thank you for your submission",
+    body: "Hello " + name + ",\n\nThank you for your submission. We will contact you soon.\n\nBest regards,\nYour Team"
+  });
+}
+function createFormSubmitTrigger() {
+  const form = FormApp.openById('YOUR_FORM_ID'); // Replace 'YOUR_FORM_ID' with your actual Google Form ID
+  ScriptApp.newTrigger('onFormSubmit')
+    .forForm(form)
+    .onFormSubmit()
+    .create();
+}
