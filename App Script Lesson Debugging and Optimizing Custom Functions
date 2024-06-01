@@ -1,0 +1,233 @@
+Using Logger for Debugging
+The Logger class helps you output messages to the Logs, which you can view in the Google Apps Script editor.
+
+function debugExample() {
+
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+
+  var range = sheet.getRange(‘A1’);
+
+  Logger.log(‘Range A1 value: ‘ + range.getValue());
+
+  // Check Logs under View > Logs in the script editor
+
+}
+
+Debugging with Breakpoints
+Set breakpoints in the script editor to pause execution and inspect variable values.
+
+function breakpointExample() {
+
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+
+  var range = sheet.getRange(‘A1:B2’);
+
+  var values = range.getValues();
+
+  // Set a breakpoint on the line below
+
+  Logger.log(‘Values: ‘ + JSON.stringify(values));
+
+}
+
+Using Try-Catch for Error Handling
+Use try-catch blocks to handle errors gracefully and log useful information.
+
+function tryCatchExample() {
+
+  try {
+
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+
+    var range = sheet.getRange(‘A1’);
+
+    var value = range.getValue();
+
+    Logger.log(‘Value: ‘ + value);
+
+  } catch (e) {
+
+    Logger.log(‘Error: ‘ + e.message);
+
+  }
+
+}
+
+Optimizing with Batch Operations
+Batch operations reduce the number of API calls, improving performance.
+
+function batchOperationExample() {
+
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+
+  var range = sheet.getRange(‘A1:A100’);
+
+  var values = range.getValues();
+
+    for (var i = 0; i < values.length; i++) {
+
+    values[i][0] = values[i][0] * 2;
+
+  }
+
+    range.setValues(values);
+
+}
+
+Avoiding Repeated Calls to SpreadsheetApp
+Store references to frequently accessed objects to minimize repeated API calls.
+
+function minimizeApiCallsExample() {
+
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+
+  var range = sheet.getRange(‘A1:A10’);
+
+  for (var i = 1; i <= 10; i++) {
+
+    range.getCell(i, 1).setValue(‘Row ‘ + i);
+
+  }
+
+}
+
+Using Efficient Data Structures
+Use arrays and objects for efficient data manipulation.
+
+function efficientDataStructureExample() {
+
+  var data = [];
+
+  for (var i = 0; i < 100; i++) {
+
+    data.push([i, i * 2, i * 3]);
+
+  }
+
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+
+  sheet.getRange(1, 1, data.length, data[0].length).setValues(data);
+
+}
+
+Implementing Caching
+Cache data to avoid redundant computations or API calls.
+
+function cachingExample() {
+
+  var cache = CacheService.getScriptCache();
+
+  var key = ‘myKey’;
+
+  var value = cache.get(key);
+
+  if (value) {
+
+    Logger.log(‘Cache hit: ‘ + value);
+
+  } else {
+
+    var computedValue = computeExpensiveValue();
+
+    cache.put(key, computedValue, 21600); // Cache for 6 hours
+
+    Logger.log(‘Cache miss, computed value: ‘ + computedValue);
+
+  }
+
+}
+
+function computeExpensiveValue() {
+
+  // Simulate an expensive computation
+
+  return Math.random();
+
+}
+
+Optimizing Loops
+Reduce the number of iterations or use more efficient looping techniques.
+
+function optimizedLoopExample() {
+
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+
+  var range = sheet.getRange(‘A1:A100’);
+
+  var values = range.getValues();
+
+  for (var i = 0, len = values.length; i < len; i++) {
+
+    values[i][0] = values[i][0] * 2;
+
+  }
+
+  range.setValues(values);
+
+}
+
+Profiling Script Performance
+Use the console.time and console.timeEnd methods to measure execution time.
+
+function profileExample() {
+
+  console.time(‘Profile’);
+
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+
+  var range = sheet.getRange(‘A1:A100’);
+
+  var values = range.getValues();
+
+  for (var i = 0; i < values.length; i++) {
+
+    values[i][0] = values[i][0] * 2;
+
+  }
+
+  range.setValues(values);
+
+  console.timeEnd(‘Profile’);
+
+}
+
+Reducing Script Execution Time
+Use time-driven triggers to break down long-running tasks.
+
+function longRunningTask() {
+
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+
+  var lastRow = sheet.getLastRow();
+
+  for (var i = 1; i <= lastRow; i++) {
+
+    if (i % 100 == 0) {
+
+      // Pause and resume to avoid exceeding execution time limits
+
+      ScriptApp.newTrigger(‘resumeTask’)
+
+          .timeBased()
+
+          .after(1)
+
+          .create();
+
+      return;
+
+    }
+
+    // Perform your operations
+
+    sheet.getRange(i, 1).setValue(‘Processed ‘ + i);
+
+  }
+
+}
+
+function resumeTask() {
+
+  longRunningTask();
+
+}
