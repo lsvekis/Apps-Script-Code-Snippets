@@ -1,0 +1,275 @@
+function onOpen() {
+
+  var ui = SpreadsheetApp.getUi();
+
+  ui.createMenu(‘Custom Menu’)
+
+      .addItem(‘Show Alert’, ‘showAlert’)
+
+      .addToUi();
+
+}
+
+function showAlert() {
+
+  SpreadsheetApp.getUi().alert(‘This is a custom alert!’);
+
+}
+
+Adding Submenus
+function onOpen() {
+
+  var ui = SpreadsheetApp.getUi();
+
+  ui.createMenu(‘Custom Menu’)
+
+      .addItem(‘Show Alert’, ‘showAlert’)
+
+      .addSubMenu(ui.createMenu(‘Submenu’)
+
+          .addItem(‘Submenu Item 1’, ‘submenuItem1’)
+
+          .addItem(‘Submenu Item 2’, ‘submenuItem2’))
+
+      .addToUi();
+
+}
+
+function submenuItem1() {
+
+  SpreadsheetApp.getUi().alert(‘Submenu Item 1 clicked!’);
+
+}
+
+function submenuItem2() {
+
+  SpreadsheetApp.getUi().alert(‘Submenu Item 2 clicked!’);
+
+}
+
+Creating a Custom Dialog
+function showDialog() {
+
+  var htmlOutput = HtmlService.createHtmlOutput(‘<p>A custom dialog</p>’)
+
+      .setWidth(250)
+
+      .setHeight(300);
+
+  SpreadsheetApp.getUi().showModalDialog(htmlOutput, ‘Custom Dialog’);
+
+}
+
+Creating a Custom Sidebar
+function showSidebar() {
+
+  var htmlOutput = HtmlService.createHtmlOutput(‘<p>A custom sidebar</p>’);
+
+  SpreadsheetApp.getUi().showSidebar(htmlOutput);
+
+}
+
+Prompting User for Input
+function showPrompt() {
+
+  var ui = SpreadsheetApp.getUi();
+
+  var response = ui.prompt(‘Enter your name:’);
+
+    if (response.getSelectedButton() == ui.Button.OK) {
+
+    var name = response.getResponseText();
+
+    ui.alert(‘Hello, ‘ + name);
+
+  } else {
+
+    ui.alert(‘Prompt cancelled.’);
+
+  }
+
+}
+
+Creating a Custom Menu with Multiple Items
+function onOpen() {
+
+  var ui = SpreadsheetApp.getUi();
+
+  ui.createMenu(‘My Custom Menu’)
+
+      .addItem(‘Item 1’, ‘menuItem1’)
+
+      .addItem(‘Item 2’, ‘menuItem2’)
+
+      .addSeparator()
+
+      .addItem(‘Item 3’, ‘menuItem3’)
+
+      .addToUi();
+
+}
+
+function menuItem1() {
+
+  SpreadsheetApp.getUi().alert(‘Item 1 clicked’);
+
+}
+
+function menuItem2() {
+
+  SpreadsheetApp.getUi().alert(‘Item 2 clicked’);
+
+}
+
+function menuItem3() {
+
+  SpreadsheetApp.getUi().alert(‘Item 3 clicked’);
+
+}
+
+Adding Custom Form in Sidebar
+function showFormSidebar() {
+
+  var htmlOutput = HtmlService.createHtmlOutputFromFile(‘SidebarForm’);
+
+  SpreadsheetApp.getUi().showSidebar(htmlOutput);
+
+}
+
+// In a separate HTML file named ‘SidebarForm.html’
+
+/*
+
+<!DOCTYPE html>
+
+<html>
+
+  <body>
+
+    <form>
+
+      Name: <input type=”text” name=”name”><br>
+
+      Email: <input type=”text” name=”email”><br>
+
+      <input type=”button” value=”Submit” onclick=”google.script.run.processForm(this.parentNode)”>
+
+    </form>
+
+  </body>
+
+</html>
+
+*/
+
+function processForm(formObject) {
+
+  SpreadsheetApp.getUi().alert(‘Form submitted!\nName: ‘ + formObject.name + ‘\nEmail: ‘ + formObject.email);
+
+}
+
+Creating a Custom Menu with Icons
+function onOpen() {
+
+  var ui = SpreadsheetApp.getUi();
+
+  ui.createMenu(‘🛠️ Tools’)
+
+      .addItem(‘✅ Do Something’, ‘doSomething’)
+
+      .addItem(‘🔄 Refresh’, ‘refreshSheet’)
+
+      .addToUi();
+
+}
+
+function doSomething() {
+
+  SpreadsheetApp.getUi().alert(‘Doing something…’);
+
+}
+
+function refreshSheet() {
+
+  SpreadsheetApp.getActiveSpreadsheet().getActiveSheet().clear();
+
+  SpreadsheetApp.getUi().alert(‘Sheet refreshed’);
+
+}
+
+Setting Up Custom Menus Based on User Role
+function onOpen() {
+
+  var ui = SpreadsheetApp.getUi();
+
+  var email = Session.getActiveUser().getEmail();
+
+  if (email == ‘admin@example.com’) {
+
+    ui.createMenu(‘Admin Menu’)
+
+        .addItem(‘Admin Task’, ‘adminTask’)
+
+        .addToUi();
+
+  } else {
+
+    ui.createMenu(‘User Menu’)
+
+        .addItem(‘User Task’, ‘userTask’)
+
+        .addToUi();
+
+  }
+
+}
+
+function adminTask() {
+
+  SpreadsheetApp.getUi().alert(‘Admin task executed’);
+
+}
+
+function userTask() {
+
+  SpreadsheetApp.getUi().alert(‘User task executed’);
+
+}
+
+Using HTML Service for Advanced Interfaces
+function showAdvancedDialog() {
+
+  var html = HtmlService.createHtmlOutputFromFile(‘AdvancedDialog’);
+
+  SpreadsheetApp.getUi().showModalDialog(html, ‘Advanced Dialog’);
+
+}
+
+// In a separate HTML file named ‘AdvancedDialog.html’
+
+/*
+
+<!DOCTYPE html>
+
+<html>
+
+  <head>
+
+    <base target=”_top”>
+
+  </head>
+
+  <body>
+
+    <h1>Advanced Dialog</h1>
+
+    <p>This is an advanced dialog with more features.</p>
+
+    <button onclick=”google.script.host.close()”>Close</button>
+
+  </body>
+
+</html>
+
+*/
+
