@@ -1,0 +1,272 @@
+Simple On-Open Trigger
+Automatically execute a function when the spreadsheet is opened.
+
+function onOpen() {
+
+  var ui = SpreadsheetApp.getUi();
+
+  ui.createMenu(‘My Custom Menu’)
+
+      .addItem(‘Show Alert’, ‘showAlert’)
+
+      .addToUi();
+
+}
+
+function showAlert() {
+
+  SpreadsheetApp.getUi().alert(‘Spreadsheet opened!’);
+
+}
+
+Time-Driven Trigger to Send Daily Emails
+Set up a trigger to send an email every day at a specific time.
+
+function createDailyTrigger() {
+
+  ScriptApp.newTrigger(‘sendDailyEmail’)
+
+      .timeBased()
+
+      .everyDays(1)
+
+      .atHour(8) // 8 AM
+
+      .create();
+
+}
+
+function sendDailyEmail() {
+
+  MailApp.sendEmail(‘recipient@example.com’, ‘Daily Update’, ‘This is your daily update.’);
+
+}
+
+On-Edit Trigger to Log Changes
+Automatically log changes made to a spreadsheet.
+
+function onEdit(e) {
+
+  var sheet = e.source.getActiveSheet();
+
+  var range = e.range;
+
+  var newValue = e.value;
+
+  var oldValue = e.oldValue;
+
+  var logSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(‘EditLog’);
+
+  if (!logSheet) {
+
+    logSheet = SpreadsheetApp.getActiveSpreadsheet().insertSheet(‘EditLog’);
+
+    logSheet.appendRow([‘Timestamp’, ‘Sheet’, ‘Cell’, ‘Old Value’, ‘New Value’]);
+
+  }
+
+  logSheet.appendRow([new Date(), sheet.getName(), range.getA1Notation(), oldValue, newValue]);
+
+}
+
+Installable Trigger for Weekly Report Generation
+Generate and email a weekly report.
+
+function createWeeklyReportTrigger() {
+
+  ScriptApp.newTrigger(‘generateWeeklyReport’)
+
+      .timeBased()
+
+      .onWeekDay(ScriptApp.WeekDay.MONDAY)
+
+      .atHour(9) // 9 AM
+
+      .create();
+
+}
+
+function generateWeeklyReport() {
+
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+
+  var data = sheet.getDataRange().getValues();
+
+    var report = ‘Weekly Report\n\n’;
+
+  data.forEach(function(row) {
+
+    report += row.join(‘, ‘) + ‘\n’;
+
+  });
+
+  MailApp.sendEmail(‘recipient@example.com’, ‘Weekly Report’, report);
+
+}
+
+Form Submission Trigger
+Automatically process data when a form is submitted.
+
+function onFormSubmit(e) {
+
+  var responses = e.values;
+
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(‘Responses’);
+
+  sheet.appendRow(responses);
+
+  MailApp.sendEmail(‘admin@example.com’, ‘New Form Submission’, ‘A new form has been submitted.’);
+
+}
+
+Custom Time-Driven Trigger to Clean Up Old Data
+Delete rows older than 30 days every day.
+
+function createCleanupTrigger() {
+
+  ScriptApp.newTrigger(‘cleanupOldData’)
+
+      .timeBased()
+
+      .everyDays(1)
+
+      .atHour(2) // 2 AM
+
+      .create();
+
+}
+
+function cleanupOldData() {
+
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+
+  var data = sheet.getDataRange().getValues();
+
+  var today = new Date();
+
+  for (var i = data.length – 1; i >= 1; i–) {
+
+    var rowDate = new Date(data[i][0]);
+
+    if ((today – rowDate) / (1000 * 60 * 60 * 24) > 30) {
+
+      sheet.deleteRow(i + 1);
+
+    }
+
+  }
+
+}
+
+On-Change Trigger to Update Cell Values
+Automatically update cell values when changes are made.
+
+function onChange(e) {
+
+  var sheet = e.source.getActiveSheet();
+
+  if (sheet.getName() === ‘Data’) {
+
+    var range = sheet.getRange(‘A1’);
+
+    range.setValue(‘Last updated: ‘ + new Date());
+
+  }
+
+}
+
+Custom Menu to Manage Triggers
+Create a custom menu to easily manage triggers.
+
+function onOpen() {
+
+  var ui = SpreadsheetApp.getUi();
+
+  ui.createMenu(‘Trigger Manager’)
+
+      .addItem(‘Create Daily Email Trigger’, ‘createDailyTrigger’)
+
+      .addItem(‘Delete All Triggers’, ‘deleteAllTriggers’)
+
+      .addToUi();
+
+}
+
+function deleteAllTriggers() {
+
+  var allTriggers = ScriptApp.getProjectTriggers();
+
+  for (var i = 0; i < allTriggers.length; i++) {
+
+    ScriptApp.deleteTrigger(allTriggers[i]);
+
+  }
+
+  SpreadsheetApp.getUi().alert(‘All triggers have been deleted.’);
+
+}
+
+Using ClockApp for Precise Time Triggers
+Schedule a task to run every hour.
+
+function createHourlyTrigger() {
+
+  ScriptApp.newTrigger(‘hourlyTask’)
+
+      .timeBased()
+
+      .everyHours(1)
+
+      .create();
+
+}
+
+function hourlyTask() {
+
+  Logger.log(‘Hourly task executed at ‘ + new Date());
+
+}
+
+On-Install Trigger to Set Up Initial Configuration
+Automatically set up triggers when the script is installed.
+
+function onInstall(e) {
+
+  onOpen();
+
+  createDailyTrigger();
+
+}
+
+function onOpen() {
+
+  var ui = SpreadsheetApp.getUi();
+
+  ui.createMenu(‘Setup’)
+
+      .addItem(‘Create Daily Trigger’, ‘createDailyTrigger’)
+
+      .addToUi();
+
+}
+
+function createDailyTrigger() {
+
+  ScriptApp.newTrigger(‘sendDailyEmail’)
+
+      .timeBased()
+
+      .everyDays(1)
+
+      .atHour(8) // 8 AM
+
+      .create();
+
+}
+
+function sendDailyEmail() {
+
+  MailApp.sendEmail(‘recipient@example.com’, ‘Daily Update’, ‘This is your daily update.’);
+
+}
+
