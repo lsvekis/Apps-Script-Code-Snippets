@@ -1,0 +1,61 @@
+function printDocumentParts() {
+  // ID of the Google Doc to be printed
+  var docId = 'YOUR_DOC_ID';
+  
+  // Open the document by ID
+  var doc = DocumentApp.openById(docId);
+  
+  // Get the body of the document
+  var body = doc.getBody();
+  
+  // Create a new temporary document for selected parts
+  var tempDoc = DocumentApp.create('Temp Print Document');
+  var tempBody = tempDoc.getBody();
+  
+  // Define the parts you want to print (using paragraph indices)
+  var partsToPrint = [0, 2, 4];  // Example: print the 1st, 3rd, and 5th paragraphs
+  
+  // Extract and append the parts to the temporary document
+  partsToPrint.forEach(function(index) {
+    var element = body.getChild(index).copy();
+    tempBody.appendParagraph(element.getText());
+  });
+  
+  // Save and close the temporary document
+  tempDoc.saveAndClose();
+  
+  // Fetch the temporary document content as a PDF blob
+  var pdfBlob = DriveApp.getFileById(tempDoc.getId()).getAs('application/pdf');
+  
+  // Create a new blob output in the format of a PDF
+  var pdfOutput = DriveApp.createFile(pdfBlob);
+  
+  // Log the URL of the PDF file
+  Logger.log('PDF file created: ' + pdfOutput.getUrl());
+  
+  // Optionally, send the PDF to a printer via an external service or Google Cloud Print (deprecated)
+  // sendToPrinter(pdfOutput);
+  
+  // Delete the temporary document
+  DriveApp.getFileById(tempDoc.getId()).setTrashed(true);
+}
+
+function printDocument() {
+  // ID of the Google Doc to be printed
+  var docId = 'YOUR_DOC_ID';
+  
+  // Open the document by ID
+  var doc = DocumentApp.openById(docId);
+  
+  // Fetch the document content as a PDF blob
+  var pdfBlob = doc.getAs('application/pdf');
+  
+  // Create a new blob output in the format of a PDF
+  var pdfOutput = DriveApp.createFile(pdfBlob);
+  
+  // Log the URL of the PDF file
+  Logger.log('PDF file created: ' + pdfOutput.getUrl());
+  
+  // Optionally, send the PDF to a printer via an external service or Google Cloud Print (deprecated)
+  // sendToPrinter(pdfOutput);
+}
