@@ -1,0 +1,14 @@
+function resetH1Size() {
+  var doc = DocumentApp.getActiveDocument();
+  var body = doc.getBody();
+  
+  var paragraphs = body.getParagraphs();
+  
+  for (var i = 0; i < paragraphs.length; i++) {
+    var paragraph = paragraphs[i];
+    
+    if (paragraph.getHeading() == DocumentApp.ParagraphHeading.HEADING1) {
+      paragraph.setFontSize(null); // Reset the font size to default
+    }
+  }
+}
