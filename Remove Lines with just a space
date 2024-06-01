@@ -1,0 +1,31 @@
+function removeSingleSpaceLines() {
+  var doc = DocumentApp.getActiveDocument();
+  var body = doc.getBody();
+  var paragraphs = body.getParagraphs();
+
+  // Iterate from the end to the beginning to avoid issues with index shifting
+  for (var i = paragraphs.length - 1; i >= 0; i--) {
+    var paragraph = paragraphs[i];
+    var text = paragraph.getText();
+
+    // Check if the paragraph contains only one space
+    if (text === ' ') {
+      // Ensure we don't remove the last paragraph if it is the only one left in the document section
+      if (paragraphs.length == 1) {
+        continue;
+      }
+
+      // Ensure we don't remove the last paragraph in the body
+      if (i == paragraphs.length - 1) {
+        continue;
+      }
+
+      // Check if the paragraph is still a child of the body
+      if (paragraph.getParent() === body) {
+        body.removeChild(paragraph);
+      }
+    }
+  }
+
+  Logger.log('All single-space lines have been removed.');
+}
