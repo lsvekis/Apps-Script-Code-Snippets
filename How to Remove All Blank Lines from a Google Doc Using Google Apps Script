@@ -1,0 +1,14 @@
+function removeBlankLines() {
+  var doc = DocumentApp.getActiveDocument();
+  var body = doc.getBody();
+  var paragraphs = body.getParagraphs();
+
+  for (var i = paragraphs.length - 1; i >= 0; i--) {
+    var paragraph = paragraphs[i];
+    if (paragraph.getText().trim() === '') {
+      body.removeChild(paragraph);
+    }
+  }
+
+  Logger.log('All blank lines have been removed.');
+}
