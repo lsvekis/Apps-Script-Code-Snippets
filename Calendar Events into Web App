@@ -1,0 +1,58 @@
+function getCalendarEvents() {
+  var calendarId = 'primary'; // Use 'primary' for the primary calendar
+  var now = new Date();
+  var startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  var endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  
+  var events = Calendar.Events.list(calendarId, {
+    timeMin: startOfMonth.toISOString(),
+    timeMax: endOfMonth.toISOString(),
+    singleEvents: true,
+    orderBy: 'startTime'
+  });
+  
+  return events.items.map(function(event) {
+    return {
+      title: event.summary,
+      start: event.start.dateTime || event.start.date, // All-day events do not have dateTime
+      end: event.end.dateTime || event.end.date
+    };
+  });
+}
+function testGetCalendarEvents() {
+  try {
+    var events = getCalendarEvents(); // Call the main function
+    Logger.log('Number of events fetched: ' + events.length);
+    Logger.log(JSON.stringify(events)); // Log the details of events
+  } catch (error) {
+    Logger.log('Error testing getCalendarEvents: ' + error.toString());
+  }
+}
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Monthly Calendar View</title>
+</head>
+<body>
+  <h1>Calendar Events for This Month</h1>
+  <ul id="events"></ul>
+  <script>
+    function fetchEvents() {
+      google.script.run
+        .withSuccessHandler(success)
+        .getCalendarEvents();
+    }
+    function success(events) {
+          console.log(events);
+          var eventsList = document.getElementById('events');
+          eventsList.innerHTML = '';
+          events.forEach(function(event) {
+            var li = document.createElement('li');
+            li.textContent = event.title + ' (' + event.start + ' to ' + event.end + ')';
+            eventsList.appendChild(li);
+          });
+        }
+    window.onload = fetchEvents; // Fetch events when the page loads
+  </script>
+</body>
+</html>
