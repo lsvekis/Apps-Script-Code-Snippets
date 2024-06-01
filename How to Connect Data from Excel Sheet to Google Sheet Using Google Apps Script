@@ -1,0 +1,29 @@
+function importExcelData() {
+  // ID of the source Google Sheet (converted from Excel)
+  var sourceSheetId = 'SOURCE_SHEET_ID';
+  
+  // ID of the target Google Sheet where data will be transferred
+  var targetSheetId = 'TARGET_SHEET_ID';
+  
+  // Open the source and target Google Sheets
+  var sourceSpreadsheet = SpreadsheetApp.openById(sourceSheetId);
+  var targetSpreadsheet = SpreadsheetApp.openById(targetSheetId);
+  
+  // Get the first sheet from both source and target
+  var sourceSheet = sourceSpreadsheet.getSheets()[0];
+  var targetSheet = targetSpreadsheet.getSheets()[0];
+  
+  // Get the range of data from the source sheet
+  var sourceRange = sourceSheet.getDataRange();
+  
+  // Get the values from the source range
+  var sourceValues = sourceRange.getValues();
+  
+  // Clear the target sheet
+  targetSheet.clear();
+  
+  // Set the values in the target sheet
+  targetSheet.getRange(1, 1, sourceValues.length, sourceValues[0].length).setValues(sourceValues);
+  
+  Logger.log('Data imported successfully from source to target sheet');
+}
