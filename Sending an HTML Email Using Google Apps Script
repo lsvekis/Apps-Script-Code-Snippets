@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      .container {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 10px;
+        width: 80%;
+        margin: 0 auto;
+      }
+      .header {
+        background-color: #f2f2f2;
+        padding: 10px;
+        text-align: center;
+        font-size: 24px;
+        font-weight: bold;
+      }
+      .content {
+        margin-top: 20px;
+        line-height: 1.6;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">Welcome to Our Newsletter</div>
+      <div class="content">
+        <p>Dear Subscriber,</p>
+        <p>Thank you for subscribing to our newsletter. We are excited to have you with us.</p>
+        <p>Stay tuned for more updates!</p>
+        <p>Best regards,<br>Your Company</p>
+      </div>
+    </div>
+  </body>
+</html>
+
+function sendHTMLEmail() {
+  // The email address to send to
+  var recipient = 'recipient@example.com';
+  
+  // Subject of the email
+  var subject = 'Welcome to Our Newsletter';
+
+  // Fetch the HTML content from the file
+  var htmlTemplate = HtmlService.createHtmlOutputFromFile('emailTemplate').getContent();
+
+  // Send the email
+  GmailApp.sendEmail(recipient, subject, '', {
+    htmlBody: htmlTemplate
+  });
+
+  Logger.log('Email sent to: ' + recipient);
+}
