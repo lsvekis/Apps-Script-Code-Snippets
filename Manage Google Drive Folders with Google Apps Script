@@ -1,0 +1,34 @@
+/**
+ * Checks if a folder exists within Google Drive and returns it; creates the folder if it doesn't exist.
+ * @param {string} folderName - The name of the folder to check or create.
+ * @return {GoogleAppsScript.Drive.Folder} The folder object.
+ */
+function getFolder(folderName) {
+    var folders = DriveApp.getFoldersByName(folderName);
+    if (folders.hasNext()) {
+        return folders.next();
+    } else {
+        return DriveApp.createFolder(folderName);
+    }
+}
+
+/**
+ * Ensures both a parent folder and a child folder exist, creating them if necessary.
+ * @param {string} parentFolderName - The name of the parent folder.
+ * @param {string} childFolderName - The name of the child folder.
+ * @return {GoogleAppsScript.Drive.Folder} The child folder object.
+ */
+function ensureFolderStructure(parentFolderName, childFolderName) {
+    var parentFolder = getFolder(parentFolderName);
+    var childFolders = parentFolder.getFoldersByName(childFolderName);
+    if (childFolders.hasNext()) {
+        return childFolders.next();
+    } else {
+        return parentFolder.createFolder(childFolderName);
+    }
+}
+
+function setupProjectFolders() {
+    var projectFolder = ensureFolderStructure('ProjectXYZ', '2024');
+    Logger.log('Folder ID: ' + projectFolder.getId());
+}
