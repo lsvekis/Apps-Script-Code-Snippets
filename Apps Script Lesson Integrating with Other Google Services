@@ -1,0 +1,232 @@
+Integrating with Google Drive
+Automate file management tasks in Google Drive.
+
+function listFilesInFolder() {
+
+  var folderId = ‘your-folder-id-here’;
+
+  var folder = DriveApp.getFolderById(folderId);
+
+  var files = folder.getFiles();
+
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+
+  sheet.clear();
+
+  sheet.appendRow([‘File Name’, ‘File ID’, ‘Last Updated’]);
+
+  while (files.hasNext()) {
+
+    var file = files.next();
+
+    sheet.appendRow([file.getName(), file.getId(), file.getLastUpdated()]);
+
+  }
+
+}
+
+Integrating with Google Calendar
+Create calendar events based on data in a spreadsheet.
+
+function createCalendarEvents() {
+
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+
+  var calendarId = ‘your-calendar-id@group.calendar.google.com’;
+
+
+  var calendar = CalendarApp.getCalendarById(calendarId);
+
+  var data = sheet.getDataRange().getValues();
+
+  for (var i = 1; i < data.length; i++) { // Skip the header row
+
+    var eventName = data[i][0];
+
+    var eventDate = new Date(data[i][1]);
+
+    calendar.createEvent(eventName, eventDate, eventDate);
+
+  }
+
+}
+
+Integrating with Google Forms
+Automatically populate a Google Form with data from a spreadsheet.
+
+function populateGoogleForm() {
+
+  var form = FormApp.openById(‘your-form-id-here’);
+
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+
+  var data = sheet.getDataRange().getValues();
+
+    for (var i = 1; i < data.length; i++) { // Skip the header row
+
+    var item = form.addMultipleChoiceItem();
+
+    item.setTitle(data[i][0])
+
+        .setChoiceValues(data[i].slice(1));
+
+  }
+
+}
+
+Integrating with Gmail
+Send personalized emails based on spreadsheet data.
+
+function sendPersonalizedEmails() {
+
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+
+  var data = sheet.getDataRange().getValues();
+
+  for (var i = 1; i < data.length; i++) { // Skip the header row
+
+    var emailAddress = data[i][0];
+
+    var subject = data[i][1];
+
+    var message = data[i][2];
+
+    MailApp.sendEmail(emailAddress, subject, message);
+
+  }
+
+}
+
+Integrating with Google Tasks
+Create tasks in Google Tasks from spreadsheet data.
+
+function createGoogleTasks() {
+
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+
+  var taskList = Tasks.Tasklists.insert({
+
+    title: ‘My Task List’
+
+  });
+
+    var data = sheet.getDataRange().getValues();
+
+    for (var i = 1; i < data.length; i++) { // Skip the header row
+
+    var task = {
+
+      title: data[i][0],
+
+      notes: data[i][1]
+
+    };
+
+    Tasks.Tasks.insert(task, taskList.id);
+
+  }
+
+}
+
+Integrating with Google Maps
+Generate Google Maps URLs from addresses in a spreadsheet.
+
+function generateGoogleMapsUrls() {
+
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+
+  var data = sheet.getDataRange().getValues();
+
+  for (var i = 1; i < data.length; i++) { // Skip the header row
+
+    var address = data[i][0];
+
+    var url = ‘https://www.google.com/maps/search/?api=1&query=’ + encodeURIComponent(address);
+
+    sheet.getRange(i + 1, 2).setValue(url);
+
+  }
+
+}
+
+Integrating with Google Docs
+Create and populate Google Docs based on spreadsheet data.
+
+function createGoogleDocs() {
+
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+
+  var data = sheet.getDataRange().getValues();
+
+  for (var i = 1; i < data.length; i++) { // Skip the header row
+
+    var doc = DocumentApp.create(data[i][0]);
+
+    var body = doc.getBody();
+
+    body.appendParagraph(‘Content: ‘ + data[i][1]);
+
+  }
+
+}
+
+Integrating with Google Analytics
+Fetch Google Analytics data into a spreadsheet.
+
+function fetchGoogleAnalyticsData() {
+
+  var viewId = ‘your-view-id’;
+
+  var startDate = ’30daysAgo’;
+
+  var endDate = ‘today’;
+
+  var metrics = ‘ga:sessions,ga:pageviews’;
+
+  var report = Analytics.Data.Ga.get(
+
+    ‘ga:’ + viewId, startDate, endDate, metrics
+
+  );
+
+  var rows = report.rows;
+
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+
+  sheet.clear();
+
+  sheet.appendRow([‘Date’, ‘Sessions’, ‘Pageviews’]);
+
+  for (var i = 0; i < rows.length; i++) {
+
+    sheet.appendRow(rows[i]);
+
+  }
+
+}
+
+Integrating with Google Sheets
+Import data from another Google Sheets spreadsheet.
+
+function importDataFromAnotherSheet() {
+
+  var sourceSpreadsheetId = ‘source-spreadsheet-id’;
+
+  var sourceSheetName = ‘Sheet1’;
+
+  var sourceSpreadsheet = SpreadsheetApp.openById(sourceSpreadsheetId);
+
+  var sourceSheet = sourceSpreadsheet.getSheetByName(sourceSheetName);
+
+  var sourceRange = sourceSheet.getDataRange();
+
+  var sourceValues = sourceRange.getValues();
+
+  var targetSheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+
+  targetSheet.clear();
+
+  targetSheet.getRange(1, 1, sourceValues.length, sourceValues[0].length).setValues(sourceValues);
+
+}
+
