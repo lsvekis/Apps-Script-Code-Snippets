@@ -1,0 +1,65 @@
+function sortDates() {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var range = sheet.getRange("A2:B6");
+  var values = range.getValues();
+
+  Logger.log("Original Values: " + JSON.stringify(values));
+
+  // Convert date objects to formatted date strings
+  values = values.map(function(row) {
+    return [row[0], formatDate(row[1])];
+  });
+
+  // Sort the formatted date strings
+  values.sort(function(a, b) {
+    return parseDateString(a[1]) - parseDateString(b[1]);
+  });
+
+  Logger.log("Sorted Values: " + JSON.stringify(values));
+
+  // Set the sorted values back to the range
+  range.setValues(values);
+}
+
+function formatDate(date) {
+  if (date instanceof Date) {
+    // Format the date as "Sun, Jun 2, 2024, 11:42 PM"
+    var options = {
+      weekday: 'short',
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: 'numeric',
+      hour12: true
+    };
+    return date.toLocaleString('en-US', options).replace(',', '');
+  }
+  return date;
+}
+
+function parseDateString(dateString) {
+  if (typeof dateString !== 'string') {
+    Logger.log("Invalid dateString: " + dateString);
+    return new Date(0);
+  }
+
+  var dateParts = dateString.split(' ');
+  if (dateParts.length < 5) {
+    Logger.log("Invalid format: " + dateString);
+    return new Date(0);
+  }
+
+  var dayOfWeek = dateParts[0];
+  var month = dateParts[1];
+  var day = dateParts[2];
+  var year = dateParts[3];
+  var time = dateParts[4];
+  var ampm = dateParts[5];
+
+  // Combine date and time parts into a valid date string
+  var dateStr = month + " " + day + ", " + year + " " + time + " " + ampm;
+  Logger.log("Parsed Date String: " + dateStr);
+
+  return new Date(dateStr);
+}
