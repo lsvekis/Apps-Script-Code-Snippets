@@ -1,0 +1,70 @@
+function onChange(e) {
+  var sheetName = "NewEntries";
+  var sheet = e.source.getSheetByName(sheetName);
+
+  if (!sheet) {
+    Logger.log("Sheet not found: " + sheetName);
+    return;
+  }
+
+  var currentRowCount = sheet.getLastRow();
+  var properties = PropertiesService.getScriptProperties();
+  var lastRowCount = properties.getProperty('lastRowCount');
+
+  // If the last row count is not set, initialize it
+  if (!lastRowCount) {
+    properties.setProperty('lastRowCount', currentRowCount);
+    return;
+  }
+
+  lastRowCount = parseInt(lastRowCount);
+
+  // Check if a new row was added
+  if (currentRowCount > lastRowCount) {
+    var newRowRange = sheet.getRange(currentRowCount, 1, 1, sheet.getLastColumn());
+    var newRowValues = newRowRange.getValues()[0];
+
+    Logger.log("New row added: " + newRowValues);
+
+    // Send email notification
+    sendEmailNotification(sheet, newRowValues);
+  } else {
+    Logger.log("Edit did not add a new row or was not on the target sheet.");
+  }
+
+  // Update the stored row count
+  properties.setProperty('lastRowCount', currentRowCount);
+}
+function sendEmailNotification(sheet, newRowValues) {
+   var emailAddress = Session.getActiveUser().getEmail();
+  var subject = "New Row Added to " + sheet.getName();
+  var message = "A new row has been added to the sheet " + sheet.getName() + ":\n\n";
+  
+  newRowValues.forEach(function(cellValue, index) {
+    var columnName = sheet.getRange(1, index + 1).getValue();
+    message += columnName + ": " + cellValue + "\n";
+  });
+  
+  MailApp.sendEmail(emailAddress, subject, message);
+  Logger.log("Email sent to: " + emailAddress);
+}
+function testEmailNotification() {
+  var sheetName = "NewEntries";
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(sheetName);
+
+  if (!sheet) {
+    Logger.log("Sheet not found: " + sheetName);
+    return;
+  }
+
+  // Simulate the new row values
+   var emailAddress = Session.getActiveUser().getEmail();
+  var newRowValues = ["Test Name", emailAddress , "Thu, Jun 6, 2024"];
+  
+  // Log the simulated new row
+  Logger.log("Simulated new row: " + newRowValues);
+
+  // Send email notification with the simulated new row
+  sendEmailNotification(sheet, newRowValues);
+}
