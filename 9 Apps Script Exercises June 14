@@ -1,0 +1,138 @@
+var EMAIL =  Session.getActiveUser().getEmail();
+function exportSheetToPDF() {
+  var spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = spreadsheet.getActiveSheet();
+  var pdfBlob = createPDF(spreadsheet);
+  
+  var email = EMAIL; // Replace with recipient's email
+  var subject = "PDF Export of Google Sheet";
+  var body = "Please find the attached PDF file.";
+  
+  MailApp.sendEmail(email, subject, body, {
+    attachments: [pdfBlob]
+  });
+}
+
+function createPDF(spreadsheet) {
+  var spreadsheetId = spreadsheet.getId();
+  var sheetId = spreadsheet.getActiveSheet().getSheetId();
+  var url = "https://docs.google.com/spreadsheets/d/" + spreadsheetId + "/export?";
+
+  var params = {
+    exportFormat: 'pdf',
+    format: 'pdf',
+    size: 'A4',
+    portrait: true,
+    fitw: true,
+    sheetnames: false,
+    printtitle: false,
+    pagenumbers: false,
+    gridlines: false,
+    fzr: false,
+    gid: sheetId
+  };
+
+  var options = [];
+  for (var key in params) {
+    options.push(key + "=" + params[key]);
+  }
+  var fullUrl = url + options.join("&");
+  
+  var token = ScriptApp.getOAuthToken();
+  var response = UrlFetchApp.fetch(fullUrl, {
+    headers: {
+      'Authorization': 'Bearer ' + token
+    }
+  });
+  return response.getBlob().setName(spreadsheet.getName() + ".pdf");
+}
+
+function createCalendarEvents() {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var data = sheet.getRange(2, 1, sheet.getLastRow() - 1, 4).getValues();
+  var calendar = CalendarApp.getDefaultCalendar();
+
+  data.forEach(function(row) {
+    var eventTitle = row[0];
+    var eventDate = new Date(row[1]);
+    var startTime = new Date(eventDate);
+    var endTime = new Date(eventDate);
+    
+    startTime.setHours(row[2].split(":")[0], row[2].split(":")[1]);
+    endTime.setHours(row[3].split(":")[0], row[3].split(":")[1]);
+    
+    calendar.createEvent(eventTitle, startTime, endTime);
+  });
+}
+function BMI(weight, height) {
+  if (weight <= 0 || height <= 0) {
+    return "Error: Invalid input";
+  }
+  var bmi = weight / (height * height);
+  return bmi.toFixed(2);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+function doGet() {
+  var html = HtmlService.createHtmlOutput();
+  html.append("<h1>Data from Google Sheet</h1>");
+  html.append("<ul>");
+  
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var data = sheet.getDataRange().getValues();
+  
+  for (var i = 0; i < data.length; i++) {
+    html.append("<li>" + data[i].join(", ") + "</li>");
+  }
+  
+  html.append("</ul>");
+  return html;
+}
+function sendEmail() {
+  var recipient = Session.getActiveUser().getEmail();
+  var subject = "Test Email from Google Apps Script";
+  var body = "Hello, this is a test email sent using Google Apps Script.";
+
+  MailApp.sendEmail(recipient, subject, body);
+}
+function SQRT(number) {
+  if (number < 0) {
+    return "Error: Negative number";
+  }
+  return Math.sqrt(number);
+}
+function CELSIUS_TO_FAHRENHEIT(celsius) {
+  return (celsius * 9/5) + 32;
+}
+function sortData() {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var range = sheet.getRange("A1:B4");
+  range.sort({column: 2, ascending: true});
+}
+function fetchData() {
+  var url = 'https://api.exchangerate-api.com/v4/latest/USD'; // Example API URL
+  var response = UrlFetchApp.fetch(url);
+  var data = JSON.parse(response.getContentText());
+  var rates = data.rates;
+
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  sheet.clear();
+  
+  var headers = [["Currency", "Rate"]];
+  var rows = Object.keys(rates).map(function(currency) {
+    return [currency, rates[currency]];
+  });
+
+  sheet.getRange(1, 1, headers.length, headers[0].length).setValues(headers);
+  sheet.getRange(2, 1, rows.length, rows[0].length).setValues(rows);
+}
