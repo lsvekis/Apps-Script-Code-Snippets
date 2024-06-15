@@ -1,0 +1,25 @@
+function removeQuestionAndNumberFromH3() {
+  // Get the active document
+  var doc = DocumentApp.getActiveDocument();
+  var body = doc.getBody();
+  
+  // Get all the paragraphs in the document
+  var paragraphs = body.getParagraphs();
+  
+  for (var i = 0; i < paragraphs.length; i++) {
+    var paragraph = paragraphs[i];
+    
+    // Check if the paragraph is an H3
+    if (paragraph.getHeading() === DocumentApp.ParagraphHeading.HEADING3) {
+      var text = paragraph.getText();
+      
+      // Check if the paragraph starts with "Question"
+      var regex = /^Question\s+\d+/;
+      if (regex.test(text)) {
+        // Remove "Question" and the following number
+        var newText = text.replace(regex, '').trim();
+        paragraph.setText(newText);
+      }
+    }
+  }
+}
