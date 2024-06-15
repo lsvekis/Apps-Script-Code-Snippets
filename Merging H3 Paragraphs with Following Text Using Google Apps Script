@@ -1,0 +1,36 @@
+function appendFollowingParagraphToH3() {
+  // Get the active document
+  var doc = DocumentApp.getActiveDocument();
+  var body = doc.getBody();
+  
+  // Get all the elements in the document
+  var totalElements = body.getNumChildren();
+
+  // Loop through the elements
+  for (var i = 0; i < totalElements; i++) {
+    var element = body.getChild(i);
+    
+    // Check if the element is a paragraph and if it's an H3
+    if (element.getType() == DocumentApp.ElementType.PARAGRAPH) {
+      var paragraph = element.asParagraph();
+      if (paragraph.getHeading() === DocumentApp.ParagraphHeading.HEADING3) {
+        // Check if the next element exists and is a paragraph
+        if (i + 1 < totalElements) {
+          var nextElement = body.getChild(i + 1);
+          if (nextElement.getType() == DocumentApp.ElementType.PARAGRAPH) {
+            var nextParagraph = nextElement.asParagraph();
+            
+            // Append the text of the next paragraph to the H3 paragraph
+            paragraph.appendText(' ' + nextParagraph.getText());
+            
+            // Remove the next paragraph
+            body.removeChild(nextParagraph);
+            
+            // Decrement the total elements count
+            totalElements--;
+          }
+        }
+      }
+    }
+  }
+}
