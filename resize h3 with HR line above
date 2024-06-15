@@ -1,0 +1,22 @@
+function resizeH3AndAddHorizontalLine() {
+  // Get the active document
+  var doc = DocumentApp.openById(DOCID);
+  var body = doc.getBody();
+  
+  // Get all the paragraphs in the document
+  var paragraphs = body.getParagraphs();
+  
+  // Loop from the last paragraph to the first
+  for (var i = paragraphs.length - 1; i >= 0; i--) {
+    var paragraph = paragraphs[i];
+    
+    // Check if the paragraph is an H3
+    if (paragraph.getHeading() === DocumentApp.ParagraphHeading.HEADING3) {
+      // Resize the H3 element
+      paragraph.setFontSize(16);  // Set the desired font size
+      
+      // Add a horizontal line above the H3 element
+      body.insertHorizontalRule(i);
+    }
+  }
+}
