@@ -1,0 +1,17 @@
+function removeNumberedPrefixFromH3() {
+  const doc = DocumentApp.getActiveDocument();
+  const body = doc.getBody();
+  const paragraphs = body.getParagraphs();
+
+  paragraphs.forEach(paragraph => {
+    // Check if the paragraph is an H3 heading
+    if (paragraph.getHeading() === DocumentApp.ParagraphHeading.HEADING3) {
+      const text = paragraph.getText();
+      // Regular expression to match a leading number with a period (e.g., "1. ")
+      const updatedText = text.replace(/^\d+\.\s*/, "");
+      
+      // Update the paragraph with the modified text
+      paragraph.setText(updatedText);
+    }
+  });
+}
