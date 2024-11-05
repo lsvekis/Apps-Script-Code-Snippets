@@ -1,0 +1,14 @@
+function resetFontSizeAndStyle() {
+  const doc = DocumentApp.getActiveDocument();
+  const body = doc.getBody();
+  const paragraphs = body.getParagraphs();
+
+  paragraphs.forEach(paragraph => {
+    const text = paragraph.editAsText();
+    if (text) {
+      // Reset font size and font family to default
+      text.setFontSize(null);
+      text.setFontFamily(null);
+    }
+  });
+}
