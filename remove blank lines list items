@@ -1,0 +1,12 @@
+function removeBlankListItems() {
+  const doc = DocumentApp.getActiveDocument();
+  const body = doc.getBody();
+  const paragraphs = body.getParagraphs();
+
+  paragraphs.forEach(paragraph => {
+    // Check if the paragraph is a list item and if it’s empty or whitespace
+    if (paragraph.getType() === DocumentApp.ElementType.LIST_ITEM && paragraph.getText().trim() === "") {
+      paragraph.removeFromParent();
+    }
+  });
+}
