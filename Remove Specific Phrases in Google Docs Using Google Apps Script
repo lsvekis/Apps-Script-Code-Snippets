@@ -1,0 +1,14 @@
+function removeSpecificPhrases() {
+  const phrasesToRemove = ["Phrase 1", "Phrase 2", "Another Phrase", "Sample Text"]; // Add phrases here
+  const doc = DocumentApp.getActiveDocument();
+  const body = doc.getBody();
+  const paragraphs = body.getParagraphs();
+
+  paragraphs.forEach(paragraph => {
+    const text = paragraph.getText().trim();
+    // Check if the paragraph text (in lowercase) matches any of the phrases (also in lowercase)
+    if (phrasesToRemove.some(phrase => phrase.toLowerCase() === text.toLowerCase())) {
+      paragraph.removeFromParent();
+    }
+  });
+}
