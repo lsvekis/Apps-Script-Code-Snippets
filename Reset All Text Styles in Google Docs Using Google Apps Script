@@ -1,0 +1,14 @@
+function resetTextStyles() {
+  const doc = DocumentApp.getActiveDocument();
+  const body = doc.getBody();
+  const paragraphs = body.getParagraphs();
+
+  paragraphs.forEach(paragraph => {
+    const text = paragraph.editAsText();
+    if (text) {
+      // Remove bold and italic styles for the entire paragraph
+      text.setBold(false);
+      text.setItalic(false);
+    }
+  });
+}
