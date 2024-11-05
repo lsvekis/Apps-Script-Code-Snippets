@@ -1,0 +1,13 @@
+function removeBlankLines() {
+  const doc = DocumentApp.getActiveDocument();
+  const body = doc.getBody();
+  const paragraphs = body.getParagraphs();
+
+  paragraphs.forEach(paragraph => {
+    const text = paragraph.getText().trim();
+    // Check if the paragraph is empty after trimming whitespace
+    if (text === "") {
+      paragraph.removeFromParent();
+    }
+  });
+}
