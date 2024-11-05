@@ -1,0 +1,13 @@
+function removeNumberedLines() {
+  const doc = DocumentApp.getActiveDocument();
+  const body = doc.getBody();
+  const paragraphs = body.getParagraphs();
+
+  paragraphs.forEach(paragraph => {
+    const text = paragraph.getText();
+    // Regular expression to match lines that contain only a number followed by a period
+    if (/^\d+\.$/.test(text)) {
+      paragraph.removeFromParent();
+    }
+  });
+}
