@@ -1,0 +1,21 @@
+function convertBoldToH3() {
+  const doc = DocumentApp.getActiveDocument();
+  const body = doc.getBody();
+  const paragraphs = body.getParagraphs();
+
+  paragraphs.forEach(paragraph => {
+    const text = paragraph.getText().trim();
+
+    // Check if the paragraph is bolded and not empty
+    if (text !== "" && isParagraphBold(paragraph)) {
+      // Apply H3 style to the paragraph
+      paragraph.setHeading(DocumentApp.ParagraphHeading.HEADING3);
+    }
+  });
+}
+
+// Helper function to check if the entire paragraph is bold
+function isParagraphBold(paragraph) {
+  const attributes = paragraph.getAttributes();
+  return attributes[DocumentApp.Attribute.BOLD] === true;
+}
