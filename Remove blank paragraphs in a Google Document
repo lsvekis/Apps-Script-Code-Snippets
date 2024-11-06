@@ -1,0 +1,36 @@
+/**
+ * Adds a custom menu to the Google Docs UI for easy access.
+ */
+function onOpen() {
+  DocumentApp.getUi()
+    .createMenu('Custom Scripts')
+    .addItem('Remove Blank Paragraphs', 'removeBlankParagraphs')
+    .addToUi();
+}
+
+/**
+ * Removes blank paragraphs from the Google Document, excluding the last paragraph.
+ */
+function removeBlankParagraphs() {
+  var doc = DocumentApp.getActiveDocument();
+  var body = doc.getBody();
+  var totalElements = body.getNumChildren();
+  var removedCount = 0;
+
+  // Iterate through all elements in reverse order, excluding the last paragraph
+  for (var i = totalElements - 2; i >= 0; i--) {
+    var element = body.getChild(i);
+    
+    // Check if the element is a paragraph and if it is empty or contains only whitespace
+    if (element.getType() === DocumentApp.ElementType.PARAGRAPH) {
+      var text = element.asParagraph().getText();
+      
+      if (text.trim() === '') {
+        body.removeChild(element); // Remove the blank paragraph
+        removedCount++;
+      }
+    }
+  }
+
+  DocumentApp.getUi().alert(removedCount + ' blank paragraphs have been removed.');
+}
