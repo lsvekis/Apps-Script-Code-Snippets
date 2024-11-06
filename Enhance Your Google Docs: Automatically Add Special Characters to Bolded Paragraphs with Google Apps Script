@@ -1,0 +1,49 @@
+/**
+ * Adds a custom menu to the Google Docs UI upon opening the document.
+ */
+function onOpen() {
+  DocumentApp.getUi()
+    .createMenu('Custom Scripts')
+    .addItem('Mark Bold-Start Paragraphs', 'markBoldStartParagraphs')
+    .addToUi();
+}
+
+/**
+ * Adds an asterisk at the beginning of each paragraph where the first word is fully bolded.
+ */
+function markBoldStartParagraphs() {
+  var doc = DocumentApp.getActiveDocument();
+  var body = doc.getBody();
+  var paragraphs = body.getParagraphs();
+  var markedCount = 0;
+
+  paragraphs.forEach(function(paragraph) {
+    var text = paragraph.getText();
+
+    // Check if the paragraph is empty to avoid errors
+    if (text.length > 0) {
+      // Determine the end of the first word
+      var firstWordEnd = text.indexOf(' ') !== -1 ? text.indexOf(' ') : text.length;
+      
+      // Check if the entire first word is bolded by iterating through each character
+      var textElement = paragraph.editAsText();
+      var isBold = true;
+
+      for (var i = 0; i < firstWordEnd; i++) {
+        // If any character is not bold, mark isBold as false and break
+        if (textElement.isBold(i) === false) {
+          isBold = false;
+          break;
+        }
+      }
+
+      // If the first word is fully bolded, prepend the asterisk
+      if (isBold) {
+        textElement.insertText(0, '* ');
+        markedCount++;
+      }
+    }
+  });
+
+  DocumentApp.getUi().alert(markedCount + ' paragraphs have been marked with an asterisk.');
+}
