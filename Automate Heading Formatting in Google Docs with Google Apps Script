@@ -1,0 +1,38 @@
+/**
+ * Adds a custom menu to the Google Docs UI for easy access.
+ */
+function onOpen() {
+  DocumentApp.getUi()
+    .createMenu('Custom Scripts')
+    .addItem('Convert Numbered Paragraphs to H3', 'convertNumberedParagraphsToH3')
+    .addToUi();
+}
+
+/**
+ * Finds paragraphs starting with a number and period, converts them to Heading 3, and removes the number and period.
+ */
+function convertNumberedParagraphsToH3() {
+  var doc = DocumentApp.getActiveDocument();
+  var body = doc.getBody();
+  var paragraphs = body.getParagraphs();
+  var regex = /^\d+\.\s*/; // Regex to match a number followed by a period and optional space
+  var convertedCount = 0;
+
+  paragraphs.forEach(function(paragraph) {
+    var text = paragraph.getText();
+    
+    // Check if the paragraph starts with a number and period
+    if (regex.test(text)) {
+      // Remove the number and period at the start
+      var newText = text.replace(regex, '');
+      
+      // Set the updated text and convert the paragraph to Heading 3
+      paragraph.setText(newText);
+      paragraph.setHeading(DocumentApp.ParagraphHeading.HEADING3);
+      
+      convertedCount++;
+    }
+  });
+
+  DocumentApp.getUi().alert(convertedCount + ' paragraphs have been converted to Heading 3 and updated.');
+}
