@@ -1,0 +1,40 @@
+/**
+ * Adds a custom menu to the Google Docs UI for easy access.
+ */
+function onOpen() {
+  DocumentApp.getUi()
+    .createMenu('Custom Scripts')
+    .addItem('Convert Bold Paragraphs to H3', 'convertBoldParagraphsToH3')
+    .addToUi();
+}
+
+/**
+ * Finds all paragraphs with bolded text and converts them to Heading 3.
+ */
+function convertBoldParagraphsToH3() {
+  var doc = DocumentApp.getActiveDocument();
+  var body = doc.getBody();
+  var paragraphs = body.getParagraphs();
+  var convertedCount = 0;
+
+  paragraphs.forEach(function(paragraph) {
+    // Check if the paragraph contains any bold text
+    var textElement = paragraph.editAsText();
+    var isBold = false;
+    
+    for (var i = 0; i < textElement.getText().length; i++) {
+      if (textElement.isBold(i)) {
+        isBold = true;
+        break;
+      }
+    }
+
+    // If the paragraph contains bold text, convert it to Heading 3
+    if (isBold) {
+      paragraph.setHeading(DocumentApp.ParagraphHeading.HEADING3);
+      convertedCount++;
+    }
+  });
+
+  DocumentApp.getUi().alert(convertedCount + ' bolded paragraphs have been converted to Heading 3.');
+}
