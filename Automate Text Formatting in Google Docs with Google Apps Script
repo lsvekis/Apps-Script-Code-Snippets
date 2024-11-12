@@ -1,0 +1,20 @@
+function boldParagraphStarters() {
+  const doc = DocumentApp.getActiveDocument();
+  const body = doc.getBody();
+  const paragraphs = body.getParagraphs();
+
+  const targetWords = ['Objective:', 'Explanation:'];
+  const pattern = new RegExp(`^(${targetWords.join('|')})\s*(.*)`, 'i');
+
+  paragraphs.forEach(paragraph => {
+    let text = paragraph.getText();
+    const match = text.match(pattern);
+    if (match) {
+      const starterWord = match[1].split(':')[0];
+      const remainingText = text.substring(starterWord.length + 1).trim();
+      paragraph.clear();
+      paragraph.appendText(starterWord).setBold(true);
+      paragraph.appendText(`: ${remainingText}`);
+    }
+  });
+}
