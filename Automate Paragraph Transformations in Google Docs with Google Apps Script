@@ -1,0 +1,16 @@
+function convertExercisesToHeadings() {
+  const doc = DocumentApp.getActiveDocument();
+  const body = doc.getBody();
+  const paragraphs = body.getParagraphs();
+
+  const exercisePattern = /^\/\/\s*Exercise\s*\d+\s*:/;
+
+  paragraphs.forEach(paragraph => {
+    const text = paragraph.getText();
+    if (exercisePattern.test(text)) {
+      const newText = text.replace(exercisePattern, '').trim();
+      paragraph.setText(newText);
+      paragraph.setHeading(DocumentApp.ParagraphHeading.HEADING3);
+    }
+  });
+}
