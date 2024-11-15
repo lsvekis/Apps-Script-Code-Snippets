@@ -1,0 +1,17 @@
+function onEdit(e) {
+  // Get the active spreadsheet and range
+  const range = e.range;
+  const sheet = e.source.getActiveSheet();
+
+  // Check if the user has selected more than one cell
+  if (range.getNumRows() > 1 || range.getNumColumns() > 1) {
+    // Show a pop-up message
+    SpreadsheetApp.getUi().alert("Please select a single cell to insert the date.");
+    
+    // Optional: Reset the range selection to a single cell
+    range.getCell(1, 1).activate();
+  } else {
+    // Insert the current date if one cell is selected
+    range.setValue(new Date());
+  }
+}
