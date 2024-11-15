@@ -1,0 +1,29 @@
+function sendCertificates() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  const data = sheet.getDataRange().getValues(); // Get all data from the sheet
+  const processColumnIndex = 5; // Assuming "Process?" is in column F (0-based index for column F is 5)
+  const dateColumnIndex = 6; // Assuming "Date Sent" is in column G (index 6)
+
+  for (let i = 1; i < data.length; i++) { // Skip header row
+    const row = data[i];
+    const processFlag = row[processColumnIndex];
+    const dateSent = row[dateColumnIndex];
+
+    // Check if the row should be processed and hasn't already been sent
+    if (processFlag === 'Yes' && !dateSent) {
+      // Send certificate (replace with actual logic for sending)
+      sendCertificate(row);
+
+      // Update the "Date Sent" column with the current date
+      sheet.getRange(i + 1, dateColumnIndex + 1).setValue(new Date());
+
+      // Optional: Mark the "Process?" column as "No" after processing
+      sheet.getRange(i + 1, processColumnIndex + 1).setValue('No');
+    }
+  }
+}
+
+function sendCertificate(row) {
+  // Replace this with the logic to generate and send the certificate
+  Logger.log(`Sending certificate for ${row[0]}...`);
+}
