@@ -1,0 +1,118 @@
+/**
+ * Removes both multi-paragraph and single-paragraph language-specific text patterns from a specified Google Document.
+ * Patterns removed:
+ *   - Multi-paragraph: A paragraph containing a keyword followed by a paragraph containing 'Copy code'.
+ *   - Single-paragraph: A paragraph containing 'keyword\nCopy code'.
+ * The removal is case-insensitive.
+ */
+function removeTextPatternsComprehensively() {
+  try {
+    // Replace 'YOUR_DOCUMENT_ID_HERE' with your actual Document ID
+    var DOCID = 'YOUR_DOCUMENT_ID_HERE';
+    
+    // Open the document by ID
+    var doc = DocumentApp.openById(DOCID);
+    var body = doc.getBody();
+    
+    // Define the list of languages/keywords
+    var keywords = [
+      'makefile',
+      'bash',
+      'css',
+      'html',
+      'javascript',
+      'arduino',
+      'php',
+      'scss',
+      'kotlin',
+      'csharp',
+      'sql',
+      'lua',
+      'python'
+    ];
+    
+    // Convert keywords to lowercase for case-insensitive comparison
+    var keywordsLower = keywords.map(function(word) {
+      return word.toLowerCase();
+    });
+    
+    // Get all paragraphs in the document
+    var paragraphs = body.getParagraphs();
+    
+    // Counter for removals
+    var removalCount = 0;
+    
+    // First, handle multi-paragraph patterns
+    for (var i = paragraphs.length - 2; i >= 0; i--) {
+      var currentParaText = paragraphs[i].getText().trim().toLowerCase();
+      var nextParaText = paragraphs[i + 1].getText().trim().toLowerCase();
+      
+      // Check if current paragraph matches any keyword and next paragraph is 'copy code'
+      if (keywordsLower.includes(currentParaText) && nextParaText === 'copy code') {
+        // Remove the 'Copy code' paragraph first
+        body.removeChild(paragraphs[i + 1]);
+        // Then remove the keyword paragraph
+        body.removeChild(paragraphs[i]);
+        
+        removalCount += 2;
+        
+        // Log the removal
+        Logger.log('Removed multi-paragraph patterns at paragraphs ' + (i + 1) + ' and ' + (i + 2));
+        
+        // To avoid quota limits, save and close the document periodically
+        if (removalCount % 20 === 0) { // Adjust the batch size as needed
+          doc.saveAndClose();
+          // Reopen the document to continue making changes
+          doc = DocumentApp.openById(DOCID);
+          body = doc.getBody();
+          paragraphs = body.getParagraphs(); // Refresh the paragraphs after reopening
+        }
+      }
+    }
+    
+    // Refresh paragraphs after multi-paragraph removals
+    paragraphs = body.getParagraphs();
+    
+    // Now, handle single-paragraph patterns
+    for (var i = paragraphs.length - 1; i >= 0; i--) {
+      var para = paragraphs[i];
+      var paraText = para.getText().trim();
+      
+      // Check for patterns within the same paragraph
+      var patternRegex = new RegExp('^(' + keywords.join('|') + ')\\s*\\n\\s*Copy code$', 'i');
+      
+      if (patternRegex.test(paraText)) {
+        body.removeChild(para);
+        removalCount += 1;
+        Logger.log('Removed single-paragraph pattern at paragraph ' + (i + 1));
+        
+        // Save periodically
+        if (removalCount % 20 === 0) {
+          doc.saveAndClose();
+          doc = DocumentApp.openById(DOCID);
+          body = doc.getBody();
+          paragraphs = body.getParagraphs();
+        }
+      }
+    }
+    
+    // Final save after all removals
+    doc.saveAndClose();
+    
+    // Log a confirmation message
+    Logger.log("All specified text patterns have been removed successfully. Total removals: " + removalCount);
+    
+  } catch (e) {
+    Logger.log('An error occurred: ' + e.message);
+  }
+}
+
+/**
+ * Adds a custom menu to the Google Docs UI for easy access to the script.
+ */
+function onOpen() {
+  DocumentApp.getUi()
+    .createMenu('Custom Scripts')
+    .addItem('Remove Text Patterns', 'removeTextPatternsComprehensively')
+    .addToUi();
+}
