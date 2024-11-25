@@ -1,0 +1,33 @@
+function listFilesInFolder(folderId) {
+  try {
+    // Open the folder using the folderId
+    const folder = DriveApp.getFolderById(folderId);
+    const files = folder.getFiles();
+
+    // HTML structure
+    let htmlOutput = '<ul>';
+
+    while (files.hasNext()) {
+      const file = files.next();
+      const fileName = file.getName();
+      const fileSize = (file.getSize() / (1024 * 1024)).toFixed(2) + ' MB'; // Convert size to MB
+      const fileUrl = file.getUrl();
+
+      // Check if the file is a PDF
+      const isPdf = file.getMimeType() === 'application/pdf';
+
+      // Append to HTML
+      htmlOutput += `<li>
+        <a href="${fileUrl}" target="_blank">${fileName}</a> 
+        (Size: ${fileSize}, Type: ${isPdf ? 'PDF' : 'Other'})
+      </li>`;
+    }
+
+    htmlOutput += '</ul>';
+    return htmlOutput;
+
+  } catch (e) {
+    console.error(e.toString());
+    return `Error: ${e.toString()}`;
+  }
+}
