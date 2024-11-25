@@ -1,0 +1,34 @@
+function translateDocToEnglish() {
+  try {
+    // Get the active document
+    const doc = DocumentApp.getActiveDocument();
+    const body = doc.getBody();
+    
+    // Get all the text from the document
+    const originalText = body.getText();
+
+    // Translate the text to English using Google Apps Script's LanguageApp service
+    const translatedText = LanguageApp.translate(originalText, null, "en");
+
+    // Clear the document's current content and replace it with the translated text
+    body.setText(translatedText);
+
+    // Log a success message to indicate completion
+    Logger.log("Document successfully translated to English.");
+  } catch (e) {
+    // Log an error message if something goes wrong
+    Logger.log("Error: " + e.message);
+  }
+}
+
+function onOpen() {
+  const ui = DocumentApp.getUi();
+  ui.createMenu('Translate')
+    .addItem('Translate to English', 'translateDocToEnglish')
+    .addToUi();
+} 
+
+// To automatically add the menu to the Google Doc when it is opened
+function onInstall(e) {
+  onOpen(e);
+} 
