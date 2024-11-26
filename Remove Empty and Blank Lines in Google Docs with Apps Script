@@ -1,0 +1,24 @@
+function removeEmptyLines() {
+  const doc = DocumentApp.getActiveDocument();
+  const body = doc.getBody();
+  const paragraphs = body.getParagraphs();
+
+  // Iterate through paragraphs from bottom to top
+  for (let i = paragraphs.length - 1; i >= 0; i--) {
+    const paragraph = paragraphs[i];
+    const text = paragraph.getText().trim();
+
+    // Skip the last paragraph in the document section
+    if (i === paragraphs.length - 1) {
+      Logger.log("Skipping the last paragraph to avoid exceptions.");
+      continue;
+    }
+
+    // Check if the paragraph is empty or contains only whitespace
+    if (text === '') {
+      body.removeChild(paragraph);
+    }
+  }
+
+  Logger.log("Empty and blank lines have been removed, except the last paragraph.");
+}
