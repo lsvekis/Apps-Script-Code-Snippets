@@ -1,0 +1,21 @@
+function removeTextPatternWithLineBreaks() {
+  const doc = DocumentApp.getActiveDocument();
+  const body = doc.getBody();
+  const paragraphs = body.getParagraphs();
+
+  paragraphs.forEach(paragraph => {
+    const text = paragraph.getText();
+
+    // Adjust pattern to handle line breaks (Shift+Enter in Docs)
+    const pattern = /javascript\s+copy code/gi;
+
+    // Check if the pattern exists in the paragraph
+    if (pattern.test(text)) {
+      // Replace the matched pattern with an empty string
+      const updatedText = text.replace(pattern, '');
+      paragraph.setText(updatedText);
+    }
+  });
+
+  Logger.log("Occurrences of the text pattern have been removed.");
+}
