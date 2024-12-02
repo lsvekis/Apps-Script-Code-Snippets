@@ -1,7 +1,8 @@
+
 function removeSpecificLines() {
   const doc = DocumentApp.getActiveDocument(); // Access the current Google Doc
   const body = doc.getBody(); // Get the document's body content
-  const targetPhrase = "Printed using Save ChatGPT as PDF, powered by PDFCrowd HTML to PDF API"; // Phrase to match
+  const targetPhrase = "Remove this"; // Phrase to match
   
   const paragraphs = body.getParagraphs(); // Get all paragraphs in the document
   for (let i = paragraphs.length - 1; i >= 0; i--) { // Loop backwards to avoid skipping indices
