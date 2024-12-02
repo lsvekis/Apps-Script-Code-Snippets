@@ -1,0 +1,18 @@
+function boldQuestions() {
+  const doc = DocumentApp.getActiveDocument(); // Access the current Google Doc
+  const body = doc.getBody(); // Get the document's body content
+  const paragraphs = body.getParagraphs(); // Get all paragraphs in the document
+
+  const questionPattern = /^Question \d+/; // Regular expression to match "Question 1", "Question 2", etc.
+
+  paragraphs.forEach(paragraph => {
+    const text = paragraph.getText(); // Get the text of the paragraph
+    if (questionPattern.test(text)) { // Check if the text matches the pattern
+      const startIndex = text.indexOf("Question"); // Find the starting position of "Question"
+      const endIndex = text.indexOf(' ', startIndex + 9) === -1 ? text.length : text.indexOf(' ', startIndex + 9); // Adjust for no space
+      paragraph.editAsText().setBold(startIndex, endIndex - 1, true); // Apply bold styling
+    }
+  });
+
+  Logger.log("All 'Question' elements have been bolded.");
+}
