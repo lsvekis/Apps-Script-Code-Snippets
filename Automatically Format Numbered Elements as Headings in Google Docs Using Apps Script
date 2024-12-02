@@ -1,0 +1,16 @@
+function formatNumberedElementsAsHeadings() {
+  const doc = DocumentApp.getActiveDocument(); // Access the active Google Doc
+  const body = doc.getBody(); // Get the document's body content
+  const paragraphs = body.getParagraphs(); // Get all paragraphs in the document
+
+  const numberedPattern = /^\d+\./; // Regular expression to match lines starting with a number and period
+
+  paragraphs.forEach(paragraph => {
+    const text = paragraph.getText(); // Get the text of the paragraph
+    if (numberedPattern.test(text)) { // Check if the text matches the pattern
+      paragraph.setHeading(DocumentApp.ParagraphHeading.HEADING3); // Convert the paragraph to an H3 heading
+    }
+  });
+
+  Logger.log("All numbered elements have been formatted as H3 headings.");
+}
