@@ -1,0 +1,20 @@
+function removeSpecificLines() {
+  const doc = DocumentApp.getActiveDocument(); // Access the current Google Doc
+  const body = doc.getBody(); // Get the document's body content
+  const targetPhrase = "Remove this"; // Phrase to match
+  
+  const paragraphs = body.getParagraphs(); // Get all paragraphs in the document
+  for (let i = paragraphs.length - 1; i >= 0; i--) { // Loop backwards to avoid skipping indices
+    const text = paragraphs[i].getText(); // Get text of each paragraph
+    if (text.startsWith(targetPhrase)) { // Check if the paragraph starts with the target phrase
+      if (i === paragraphs.length - 1) { 
+        // If it's the last paragraph, set its text to a single space
+        paragraphs[i].setText(' ');
+      } else {
+        // Otherwise, remove the paragraph
+        body.removeChild(paragraphs[i]);
+      }
+    }
+  }
+  Logger.log('All matching lines have been removed or cleared.');
+}
