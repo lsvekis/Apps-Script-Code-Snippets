@@ -1,0 +1,16 @@
+function convertExamplesToHeadings() {
+  const doc = DocumentApp.getActiveDocument(); // Access the active Google Doc
+  const body = doc.getBody(); // Get the document's body content
+  const paragraphs = body.getParagraphs(); // Get all paragraphs in the document
+
+  const examplePattern = /^Example \d+:/; // Regular expression to match lines like "Example 1:"
+
+  paragraphs.forEach(paragraph => {
+    const text = paragraph.getText(); // Get the text of the paragraph
+    if (examplePattern.test(text)) { // Check if the text matches the pattern
+      paragraph.setHeading(DocumentApp.ParagraphHeading.HEADING3); // Convert the paragraph to an H3 heading
+    }
+  });
+
+  Logger.log("All 'Example' elements have been converted to H3 headings.");
+}
