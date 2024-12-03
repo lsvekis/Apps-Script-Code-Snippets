@@ -1,0 +1,24 @@
+function convertDocToPdf() {
+  const docId = "YOUR_DOCUMENT_ID"; // Replace with your Google Doc ID
+  const folderId = "YOUR_FOLDER_ID"; // Replace with the target folder ID
+
+  try {
+    // Fetch the Google Doc file
+    const docFile = DriveApp.getFileById(docId);
+
+    // Convert the file to a Blob in PDF format
+    const pdfBlob = docFile.getBlob().setContentType("application/pdf");
+
+    // Get the target folder
+    const folder = DriveApp.getFolderById(folderId);
+
+    // Save the PDF to the target folder
+    const pdfFile = folder.createFile(pdfBlob).setName(docFile.getName() + ".pdf");
+
+    Logger.log("PDF created and saved: " + pdfFile.getUrl());
+    SpreadsheetApp.getUi().alert("PDF created successfully and saved to the folder.");
+  } catch (e) {
+    Logger.log("Error: " + e.message);
+    SpreadsheetApp.getUi().alert("Error: Unable to convert the document to a PDF. " + e.message);
+  }
+}
