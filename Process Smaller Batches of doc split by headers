@@ -1,0 +1,58 @@
+function splitDocumentByH1Incremental() {
+  const docId = "YOUR_DOCUMENT_ID"; // Replace with your Document ID
+  const folderId = "YOUR_FOLDER_ID"; // Replace with the target folder ID
+
+  const scriptProperties = PropertiesService.getScriptProperties();
+  const startIndex = parseInt(scriptProperties.getProperty("lastProcessedIndex") || "0", 10);
+
+  const doc = DocumentApp.openById(docId);
+  const body = doc.getBody();
+  const paragraphs = body.getParagraphs();
+
+  const targetFolder = DriveApp.getFolderById(folderId);
+  let newDoc = null, newDocBody = null;
+  let currentTitle = "";
+  let inSection = false;
+
+  for (let i = startIndex; i < paragraphs.length; i++) {
+    const paragraph = paragraphs[i];
+    const style = paragraph.getHeading();
+
+    // Check for H1 heading to start a new section
+    if (style === DocumentApp.ParagraphHeading.HEADING1) {
+      if (newDoc) {
+        newDoc.saveAndClose();
+        const newDocFile = DriveApp.getFileById(newDoc.getId());
+        targetFolder.addFile(newDocFile);
+        DriveApp.getRootFolder().removeFile(newDocFile);
+      }
+
+      currentTitle = paragraph.getText();
+      newDoc = DocumentApp.create(currentTitle);
+      newDocBody = newDoc.getBody();
+      inSection = true;
+    }
+
+    if (inSection && newDocBody) {
+      const copiedElement = paragraph.copy();
+      newDocBody.appendParagraph(copiedElement.getText())
+        .setAttributes(paragraph.getAttributes());
+    }
+
+    // Save progress every 50 paragraphs to avoid timeout
+    if (i % 50 === 0) {
+      scriptProperties.setProperty("lastProcessedIndex", i);
+      return; // Stop and allow re-execution
+    }
+  }
+
+  if (newDoc) {
+    newDoc.saveAndClose();
+    const newDocFile = DriveApp.getFileById(newDoc.getId());
+    targetFolder.addFile(newDocFile);
+    DriveApp.getRootFolder().removeFile(newDocFile);
+  }
+
+  scriptProperties.deleteProperty("lastProcessedIndex");
+  Logger.log(`Document split successfully.`);
+}
