@@ -1,0 +1,30 @@
+function listFilesInFolder() {
+  const folderId = "YOUR_FOLDER_ID"; // Replace with your Folder ID
+  const folder = DriveApp.getFolderById(folderId);
+  const files = folder.getFiles();
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+
+  sheet.clear();
+  sheet.appendRow(["File Name", "File ID", "File Path"]);
+
+  while (files.hasNext()) {
+    const file = files.next();
+    const fileName = file.getName();
+    const fileId = file.getId();
+    const filePath = getFullPath(file);
+
+    sheet.appendRow([fileName, fileId, filePath]);
+  }
+}
+
+function getFullPath(file) {
+  let currentFolder = file.getParents().next();
+  let path = currentFolder.getName();
+
+  while (currentFolder.getParents().hasNext()) {
+    currentFolder = currentFolder.getParents().next();
+    path = currentFolder.getName() + " > " + path;
+  }
+
+  return path;
+}
