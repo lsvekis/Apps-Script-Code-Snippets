@@ -1,0 +1,51 @@
+//divides a large Google Doc into smaller pieces, approximately 100 pages each, using the H1 headings as breakpoints
+function splitDocumentByH1() {
+  // ID of the Google Doc you want to split
+  const docId = "YOUR_DOCUMENT_ID"; // Replace with your Document ID
+  const folderId = "YOUR_FOLDER_ID"; // Replace with the target folder ID
+  
+  const doc = DocumentApp.openById(docId);
+  const body = doc.getBody();
+  const paragraphs = body.getParagraphs();
+
+  const targetFolder = DriveApp.getFolderById(folderId);
+  let newDoc, newDocBody;
+  let currentSectionText = "";
+  let docCounter = 1;
+
+  paragraphs.forEach((paragraph, index) => {
+    const style = paragraph.getHeading();
+
+    // Check for H1 heading to start a new section
+    if (style === DocumentApp.ParagraphHeading.HEADING1) {
+      if (currentSectionText.trim()) {
+        // Create a new document for the current section
+        newDoc = DocumentApp.create(`Section ${docCounter}`);
+        newDocBody = newDoc.getBody();
+        newDocBody.appendParagraph(currentSectionText);
+        
+        // Save the new document to the target folder
+        const newDocFile = DriveApp.getFileById(newDoc.getId());
+        targetFolder.addFile(newDocFile);
+        DriveApp.getRootFolder().removeFile(newDocFile); // Remove from root folder
+        
+        docCounter++;
+        currentSectionText = ""; // Reset the section text
+      }
+    }
+    currentSectionText += paragraph.getText() + "\n";
+  });
+
+  // Save any remaining text as the last document
+  if (currentSectionText.trim()) {
+    newDoc = DocumentApp.create(`Section ${docCounter}`);
+    newDocBody = newDoc.getBody();
+    newDocBody.appendParagraph(currentSectionText);
+    
+    const newDocFile = DriveApp.getFileById(newDoc.getId());
+    targetFolder.addFile(newDocFile);
+    DriveApp.getRootFolder().removeFile(newDocFile);
+  }
+
+  Logger.log(`Document split into ${docCounter} sections and saved to the folder.`);
+}
