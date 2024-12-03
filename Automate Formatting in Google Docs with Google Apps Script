@@ -1,0 +1,33 @@
+function convertSingleListItemsToH2() {
+  const DOCID = "YOUR_DOCUMENT_ID"; // Replace with your actual Google Docs ID
+  const doc = DocumentApp.openById(DOCID); // Open the document by ID
+  const body = doc.getBody(); // Get the body of the document
+  const elements = body.getNumChildren(); // Get the number of child elements in the body
+
+  for (let i = 0; i < elements; i++) {
+    const element = body.getChild(i);
+
+    // Check if the element is a list item
+    if (element.getType() === DocumentApp.ElementType.LIST_ITEM) {
+      const listItem = element.asListItem();
+      const text = listItem.getText();
+
+      // Get the font size of the text
+      const textStyle = listItem.editAsText();
+      const fontSize = textStyle.getFontSize(0); // Font size of the first character
+
+      // Check if the font size is 12
+      if (fontSize === 12) {
+        Logger.log("Converting: " + text);
+
+        // Create a new paragraph with the same text
+        const newParagraph = body.insertParagraph(i, text);
+        newParagraph.setHeading(DocumentApp.ParagraphHeading.HEADING2); // Set as H2 heading
+
+        // Remove the original list item
+        body.removeChild(listItem);
+      }
+    }
+  }
+  Logger.log("Single-item lists with font size 12 have been converted to regular H2 headings.");
+}
