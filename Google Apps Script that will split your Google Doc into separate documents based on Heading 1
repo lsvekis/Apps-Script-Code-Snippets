@@ -1,0 +1,87 @@
+function splitDocByHeading() {
+  var doc = DocumentApp.getActiveDocument();
+  var body = doc.getBody();
+
+  // Create or get the 'Split Documents' folder in your Drive
+  var folders = DriveApp.getFoldersByName('Split Documents');
+  var folder;
+  if (folders.hasNext()) {
+    folder = folders.next();
+  } else {
+    folder = DriveApp.createFolder('Split Documents');
+  }
+
+  var numChildren = body.getNumChildren();
+
+  var currentHeadingText = null;
+  var elements = [];
+
+  for (var i = 0; i < numChildren; i++) {
+    var element = body.getChild(i);
+    var elementType = element.getType();
+
+    if (elementType == DocumentApp.ElementType.PARAGRAPH) {
+      var paragraph = element.asParagraph();
+      var heading = paragraph.getHeading();
+
+      if (heading == DocumentApp.ParagraphHeading.HEADING1) {
+        // If we have collected content, create a new document
+        if (currentHeadingText != null) {
+          createDocument(currentHeadingText, elements, folder);
+          elements = [];
+        }
+        // Start new collection
+        currentHeadingText = paragraph.getText();
+        elements.push(element);
+      } else {
+        // Collect elements under the current heading
+        if (currentHeadingText != null) {
+          elements.push(element);
+        }
+      }
+    } else {
+      // Collect other elements (tables, images, etc.)
+      if (currentHeadingText != null) {
+        elements.push(element);
+      }
+    }
+  }
+
+  // Create document for the last heading
+  if (currentHeadingText != null && elements.length > 0) {
+    createDocument(currentHeadingText, elements, folder);
+  }
+
+  DocumentApp.getUi().alert('Documents created and stored in the "Split Documents" folder.');
+}
+
+function createDocument(title, elements, folder) {
+  var newDoc = DocumentApp.create(title);
+  var newBody = newDoc.getBody();
+
+  for (var i = 0; i < elements.length; i++) {
+    var element = elements[i];
+    var type = element.getType();
+
+    switch (type) {
+      case DocumentApp.ElementType.PARAGRAPH:
+        newBody.appendParagraph(element.copy());
+        break;
+      case DocumentApp.ElementType.TABLE:
+        newBody.appendTable(element.copy());
+        break;
+      case DocumentApp.ElementType.LIST_ITEM:
+        newBody.appendListItem(element.copy());
+        break;
+      case DocumentApp.ElementType.INLINE_IMAGE:
+        newBody.appendImage(element.copy());
+        break;
+      default:
+        // Handle other types if necessary
+        break;
+    }
+  }
+
+  // Move the doc to the specified folder
+  DriveApp.getFileById(newDoc.getId()).moveTo(folder);
+}
