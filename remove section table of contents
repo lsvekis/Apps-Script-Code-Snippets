@@ -1,0 +1,59 @@
+function removeTableOfContentsSection() {
+  // Access the active Google Document
+  var doc = DocumentApp.getActiveDocument();
+  var body = doc.getBody();
+  var totalElements = body.getNumChildren();
+  
+  var startIndex = -1;
+  var endIndex = totalElements; // Default to end of document
+  
+  // Iterate through all elements to find the 'Table of Contents' heading
+  for (var i = 0; i < totalElements; i++) {
+    var element = body.getChild(i);
+    
+    // Check if the element is a paragraph
+    if (element.getType() == DocumentApp.ElementType.PARAGRAPH) {
+      var paragraph = element.asParagraph();
+      var heading = paragraph.getHeading();
+      var text = paragraph.getText().trim();
+      
+      // Check for Heading 2 with exact text 'Table of Contents'
+      if (heading == DocumentApp.ParagraphHeading.HEADING2 && text === 'Table of Contents') {
+        startIndex = i;
+        
+        // Find the index of the next heading after 'Table of Contents'
+        for (var j = i + 1; j < totalElements; j++) {
+          var nextElement = body.getChild(j);
+          
+          if (nextElement.getType() == DocumentApp.ElementType.PARAGRAPH) {
+            var nextParagraph = nextElement.asParagraph();
+            var nextHeading = nextParagraph.getHeading();
+            
+            // If the next paragraph is a heading (any level), set endIndex and stop searching
+            if (nextHeading != DocumentApp.ParagraphHeading.NORMAL) {
+              endIndex = j;
+              break;
+            }
+          }
+        }
+        
+        // Once 'Table of Contents' is found and endIndex is determined, exit the loop
+        break;
+      }
+    }
+  }
+  
+  // If 'Table of Contents' was found, remove the section
+  if (startIndex != -1) {
+    // Remove elements from startIndex to endIndex - 1
+    for (var i = endIndex - 1; i >= startIndex; i--) {
+      body.removeChild(body.getChild(i));
+    }
+    
+    // Optional: Inform the user that the section was removed
+    DocumentApp.getUi().alert("The 'Table of Contents' section has been removed from the document.");
+  } else {
+    // Inform the user if 'Table of Contents' was not found
+    DocumentApp.getUi().alert("No Heading 2 with text 'Table of Contents' was found in the document.");
+  }
+}
