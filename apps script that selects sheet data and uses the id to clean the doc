@@ -1,0 +1,41 @@
+function onOpen() {
+  const ui = SpreadsheetApp.getUi();
+  ui.createMenu("Doc Tools")
+    .addItem("Clean and Reformat Doc", "cleanAndReformatDoc")
+    .addToUi();
+}
+function removeEmptyLines(body) {
+  const paragraphs = body.getParagraphs();
+  for (let i = paragraphs.length - 1; i >= 0; i--) {
+    const paragraph = paragraphs[i];
+    const text = paragraph.getText().trim();
+    if (i === paragraphs.length - 1 && body.getChildIndex(paragraph) === body.getNumChildren() - 1) {
+      continue;
+    }
+    if (text === "") {
+      body.removeChild(paragraph);
+    }
+  }
+}
+function removeCopyCodePatterns(body) {
+  const paragraphs = body.getParagraphs();
+  const pattern = /^Copy code\s*(html|javascript|css)$/i;
+
+  for (let i = paragraphs.length - 1; i > 0; i--) {
+    const currentText = paragraphs[i].getText().trim();
+    const previousText = paragraphs[i - 1].getText().trim();
+
+    if (pattern.test(previousText) && currentText.toLowerCase() === pattern.exec(previousText)[1]) {
+      body.removeChild(paragraphs[i]);
+      body.removeChild(paragraphs[i - 1]);
+      i--;
+    }
+  }
+}
+function resetFontSize(body) {
+  const paragraphs = body.getParagraphs();
+  for (const paragraph of paragraphs) {
+    const text = paragraph.editAsText();
+    text.setFontSize(null);
+  }
+}
