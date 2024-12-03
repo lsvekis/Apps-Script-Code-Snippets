@@ -1,0 +1,30 @@
+function formatDocumentSpacing() {
+  const doc = DocumentApp.getActiveDocument();
+  const body = doc.getBody();
+
+  // Adjust spacing above headings
+  const headings = [
+    DocumentApp.ParagraphHeading.HEADING1,
+    DocumentApp.ParagraphHeading.HEADING2,
+    DocumentApp.ParagraphHeading.HEADING3,
+    DocumentApp.ParagraphHeading.HEADING4,
+    DocumentApp.ParagraphHeading.HEADING5,
+    DocumentApp.ParagraphHeading.HEADING6
+  ];
+
+  const spacingAbove = 20; // Spacing above in points
+
+  // Iterate through all paragraphs
+  const paragraphs = body.getParagraphs();
+  for (const paragraph of paragraphs) {
+    const headingType = paragraph.getHeading();
+    if (headings.includes(headingType)) {
+      paragraph.setSpacingBefore(spacingAbove); // Add spacing above headings
+    }
+
+    // Apply 1.5 line spacing to each paragraph
+    paragraph.setLineSpacing(1.5);
+  }
+
+  Logger.log("Document formatting updated: spacing above headings and 1.5 line spacing applied.");
+}
