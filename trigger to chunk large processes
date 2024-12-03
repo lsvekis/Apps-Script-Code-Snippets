@@ -1,0 +1,86 @@
+function setupTrigger() {
+  // Create a time-driven trigger to run the incremental function every minute
+  ScriptApp.newTrigger("splitDocumentByH1Incremental")
+    .timeBased()
+    .everyMinutes(1) // Adjust interval if needed
+    .create();
+  Logger.log("Trigger created to run the script every minute.");
+}
+
+function splitDocumentByH1Incremental() {
+  const docId = "YOUR_DOCUMENT_ID"; // Replace with your Document ID
+  const folderId = "YOUR_FOLDER_ID"; // Replace with your Folder ID
+  const batchSize = 50; // Process 50 paragraphs at a time (adjust if needed)
+
+  const scriptProperties = PropertiesService.getScriptProperties();
+  const startIndex = parseInt(scriptProperties.getProperty("lastProcessedIndex") || "0", 10);
+
+  const doc = DocumentApp.openById(docId);
+  const body = doc.getBody();
+  const paragraphs = body.getParagraphs();
+
+  const targetFolder = DriveApp.getFolderById(folderId);
+  let newDoc = null, newDocBody = null;
+  let currentTitle = "";
+  let inSection = false;
+
+  for (let i = startIndex; i < paragraphs.length; i++) {
+    const paragraph = paragraphs[i];
+    const style = paragraph.getHeading();
+
+    // Start a new section on Heading 1
+    if (style === DocumentApp.ParagraphHeading.HEADING1) {
+      if (newDoc) {
+        newDoc.saveAndClose();
+        const newDocFile = DriveApp.getFileById(newDoc.getId());
+        targetFolder.addFile(newDocFile);
+        DriveApp.getRootFolder().removeFile(newDocFile);
+        Logger.log(`File saved: ${newDocFile.getName()}`);
+      }
+
+      currentTitle = paragraph.getText();
+      newDoc = DocumentApp.create(currentTitle);
+      newDocBody = newDoc.getBody();
+      inSection = true;
+    }
+
+    if (inSection && newDocBody) {
+      const copiedElement = paragraph.copy();
+      newDocBody.appendParagraph(copiedElement.getText())
+        .setAttributes(paragraph.getAttributes());
+    }
+
+    // Save progress and exit after processing a batch
+    if ((i - startIndex + 1) % batchSize === 0) {
+      scriptProperties.setProperty("lastProcessedIndex", i + 1);
+      Logger.log(`Progress saved at paragraph index: ${i + 1}`);
+      return; // Exit to allow re-execution
+    }
+  }
+
+  // Save the last section
+  if (newDoc) {
+    newDoc.saveAndClose();
+    const newDocFile = DriveApp.getFileById(newDoc.getId());
+    targetFolder.addFile(newDocFile);
+    DriveApp.getRootFolder().removeFile(newDocFile);
+    Logger.log(`File saved: ${newDocFile.getName()}`);
+  }
+
+  scriptProperties.deleteProperty("lastProcessedIndex");
+  Logger.log(`Document split successfully.`);
+
+  // Remove the trigger since the task is complete
+  deleteTrigger();
+}
+
+function deleteTrigger() {
+  // Delete the trigger to stop further executions
+  const triggers = ScriptApp.getProjectTriggers();
+  triggers.forEach(trigger => {
+    if (trigger.getHandlerFunction() === "splitDocumentByH1Incremental") {
+      ScriptApp.deleteTrigger(trigger);
+      Logger.log("Trigger deleted after completing the task.");
+    }
+  });
+}
