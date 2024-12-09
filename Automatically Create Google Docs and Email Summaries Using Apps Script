@@ -1,0 +1,105 @@
+/**
+ * Function to create sample Google Docs in a folder
+ */
+function createSampleDocs() {
+  const folderId = '1pT****hXtd'; // Replace with your folder ID
+  const folder = DriveApp.getFolderById(folderId);
+
+  const docData = [
+    {
+      fileName: 'Sample Document 1',
+      content: `
+        Welcome to Sample Document 1.
+        This document is an introduction to automation using Google Apps Script.
+        Google Apps Script is a powerful tool that allows you to automate workflows, process data, and interact with Google services.
+      `
+    },
+    {
+      fileName: 'Sample Document 2',
+      content: `
+        This is Sample Document 2.
+        Here, we talk about the importance of cloud automation and how it can save time and effort.
+        With Google Apps Script, you can create custom workflows and increase productivity in the workplace.
+      `
+    },
+    {
+      fileName: 'Sample Document 3',
+      content: `
+        Welcome to Sample Document 3.
+        In this document, we demonstrate how easy it is to extract data from multiple Google Docs and combine them into one summary.
+        This process can be useful for generating reports, overviews, or executive summaries.
+      `
+    }
+  ];
+
+  docData.forEach(data => {
+    const doc = DocumentApp.create(data.fileName); 
+    const body = doc.getBody();
+    body.appendParagraph(data.content);
+    doc.saveAndClose();
+
+    const file = DriveApp.getFileById(doc.getId());
+    folder.addFile(file); // Move the file to the target folder
+    DriveApp.getRootFolder().removeFile(file); // Remove it from the root folder
+  });
+
+  Logger.log('Sample Google Docs have been created in the folder: ' + folder.getName());
+}
+
+/**
+ * Function to extract contents from Google Docs and send a summary email
+ */
+function summarizeAndEmailGoogleDocs() {
+  const folderId = '1pT5*****QhXtd'; // Replace with your folder ID
+  const folder = DriveApp.getFolderById(folderId);
+  const files = folder.getFilesByType(MimeType.GOOGLE_DOCS);
+  const userEmail = Session.getActiveUser().getEmail(); 
+  let emailBody = 'Here is a summary of the contents from the Google Docs in your folder:\n\n';
+
+  while (files.hasNext()) {
+    const file = files.next();
+    const fileName = file.getName();
+    Logger.log(`Processing file: ${fileName}`);
+    
+    try {
+      const docId = file.getId();
+      const doc = DocumentApp.openById(docId);
+      const text = doc.getBody().getText();
+
+      // Extract the first 3 paragraphs or 500 characters from each document
+      const summary = summarizeText(text);
+      emailBody += `---\n**${fileName}**\n${summary}\n\n`;
+      
+    } catch (e) {
+      Logger.log(`Failed to process file: ${fileName}. Error: ${e}`);
+      emailBody += `Failed to process file: ${fileName}\n\n`;
+    }
+  }
+
+  // Send the email
+  MailApp.sendEmail({
+    to: userEmail,
+    subject: 'Summary of Google Docs from Your Folder',
+    body: emailBody
+  });
+
+  Logger.log('Email sent to ' + userEmail);
+}
+
+
+function summarizeText(text) {
+  const paragraphs = text.split('\n\n'); // Split the text into paragraphs
+  let summary = '';
+  
+  // Extract up to 3 paragraphs or up to 500 characters, whichever comes first
+  for (let i = 0; i < paragraphs.length && i < 3; i++) {
+    summary += paragraphs[i] + '\n\n';
+    if (summary.length >= 500) break; // Limit summary to 500 characters
+  }
+  
+  if (summary.length > 500) {
+    summary = summary.substring(0, 500) + '...'; // Truncate to 500 characters
+  }
+
+  return summary.trim();
+}
