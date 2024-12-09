@@ -1,0 +1,130 @@
+function createSamplePDFs() {
+  const folderId = '10uoAs******eLIQ7Q'; // Replace with the ID of your target folder
+  const folder = DriveApp.getFolderById(folderId);
+
+  // Sample data for PDFs
+  const pdfData = [
+    {
+      fileName: 'Sample Invoice 1.pdf',
+      content: `
+        INVOICE
+        Invoice Number: 1001
+        Date: 2024-12-09
+        Item: Widget A - $25.00
+        Item: Widget B - $50.00
+        Subtotal: $75.00
+        Tax: $7.50
+        Total: $82.50
+      `
+    },
+    {
+      fileName: 'Sample Invoice 2.pdf',
+      content: `
+        RECEIPT
+        Receipt Number: 2001
+        Date: 2024-12-08
+        Description: Service Charge - $150.00
+        Total: $150.00
+      `
+    },
+    {
+      fileName: 'Sample Invoice 3.pdf',
+      content: `
+        INVOICE
+        Invoice Number: 3001
+        Date: 2024-12-07
+        Product: Gadget A - $100.00
+        Product: Gadget B - $200.00
+        Subtotal: $300.00
+        Discount: $30.00
+        Tax: $27.00
+        Total: $297.00
+      `
+    }
+  ];
+
+  // Create PDF files in the specified folder
+  pdfData.forEach(data => {
+    const doc = DocumentApp.create(data.fileName.replace('.pdf', '')); // Create a Google Doc
+    const body = doc.getBody();
+    body.appendParagraph(data.content); // Add content to the Google Doc
+    doc.saveAndClose();
+
+    const pdfBlob = DriveApp.getFileById(doc.getId()).getAs('application/pdf'); // Convert Google Doc to PDF
+    folder.createFile(pdfBlob.setName(data.fileName)); // Save the PDF in the target folder
+    DriveApp.getFileById(doc.getId()).setTrashed(true); // Clean up: Trash the Google Doc
+  });
+
+  Logger.log('Sample PDFs have been created in the folder: ' + folder.getName());
+}
+
+function extractAndEmailTotalsFromPDFFolder() {
+  const folderId = '10uo*****LIQ7Q'; // Replace with your folder ID
+  const folder = DriveApp.getFolderById(folderId);
+  const files = folder.getFilesByType(MimeType.PDF);
+  const userEmail = Session.getActiveUser().getEmail(); // Get the user's email address
+  let emailBody = 'Here are the total values extracted from the PDF files in your folder:\n\n';
+  
+  while (files.hasNext()) {
+    const file = files.next();
+    const fileName = file.getName();
+    Logger.log(`Processing file: ${fileName}`);
+    
+    try {
+      const blob = file.getBlob().setContentType('application/pdf'); // Ensure it is a PDF blob
+      
+      // Convert PDF to Google Doc using OCR
+      const text = extractTextFromPDF(blob);
+      
+      const totalValue = extractTotalFromText(text); // Extract the total value from the text
+      Logger.log(`File: ${fileName} - Total Value: ${totalValue}`); // Log the total value for each file
+      emailBody += `File: ${fileName} - Total Value: ${totalValue}\n`; // Add total to email body
+    } catch (e) {
+      Logger.log(`Failed to extract text from file: ${fileName}. Error: ${e}`);
+      emailBody += `File: ${fileName} - Error extracting total\n`;
+    }
+  }
+
+  // Send email with the extracted totals
+  MailApp.sendEmail({
+    to: userEmail,
+    subject: 'Extracted Totals from PDF Files',
+    body: emailBody
+  });
+
+  Logger.log('Email sent to ' + userEmail);
+}
+
+function extractTextFromPDF(blob) {
+  const resource = { title: 'Temporary OCR File', mimeType: blob.getContentType() };
+  const options = { ocr: true, ocrLanguage: "en" };
+
+  // Upload the file and enable OCR to convert it to a Google Doc
+  const file = Drive.Files.insert(resource, blob, options);
+  
+  // Extract text from the converted Google Doc
+  const docId = file.id;
+  const text = DocumentApp.openById(docId).getBody().getText();
+
+  // Clean up: Remove the temporary file from Drive
+  DriveApp.getFileById(docId).setTrashed(true);
+
+  return text;
+}
+
+function extractTotalFromText(text) {
+  // Remove line breaks for easier parsing
+  const cleanText = text.replace(/\n/g, ' ');
+
+  // Extract the total using a regular expression to find common "Total" patterns
+  const totalRegex = /total[^0-9]*([\d,]+\.\d{2})/i;
+  const match = cleanText.match(totalRegex);
+  
+  if (match && match[1]) {
+    return match[1];
+  } else {
+    return 'Total value not found';
+  }
+}
+
+
