@@ -1,0 +1,35 @@
+function createNewSpreadsheetAndFetchUsers() {
+  // Step 1: Create a new Google Spreadsheet
+  const spreadsheet = SpreadsheetApp.create('Random Users Report');
+  const sheet = spreadsheet.getActiveSheet();
+  
+  // Step 2: Fetch 50 random users from the Random User API
+  const url = 'https://randomuser.me/api/?results=50'; 
+  const response = UrlFetchApp.fetch(url); 
+  const jsonData = JSON.parse(response.getContentText()); 
+  const users = jsonData.results; // Extract the 'results' array from the JSON response
+  
+  // Step 3: Prepare the headers for the sheet
+  const headers = ['Full Name', 'Gender', 'Email', 'Phone', 'City', 'State', 'Country'];
+  
+  // Step 4: Extract and format user data for each user
+  const userData = users.map(user => [
+    `${user.name.first} ${user.name.last}`,  // Full Name
+    user.gender,                             // Gender
+    user.email,                              // Email
+    user.phone,                              // Phone
+    user.location.city,                      // City
+    user.location.state,                     // State
+    user.location.country                    // Country
+  ]);
+  
+  // Step 5: Populate the spreadsheet with headers and user data
+  sheet.getRange(1, 1, 1, headers.length).setValues([headers]); // Set headers
+  sheet.getRange(2, 1, userData.length, userData[0].length).setValues(userData); // Set user data
+  
+  // Log the URL of the new spreadsheet
+  const spreadsheetUrl = spreadsheet.getUrl();
+  Logger.log(`New spreadsheet created: ${spreadsheetUrl}`);
+  
+
+}
