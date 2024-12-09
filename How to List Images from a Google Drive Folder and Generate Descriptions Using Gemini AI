@@ -1,0 +1,82 @@
+const IMAGEFOLDER = '1TsX*****dDe';
+const SHEETID = '1Zy****g';
+
+function listFilesInFolder() {
+  // Change this to the folder ID of the folder you want to list files from
+  const folderId = IMAGEFOLDER;
+  const folder = DriveApp.getFolderById(folderId);
+  const files = folder.getFiles();
+  
+  // Get the active spreadsheet and the first sheet
+  const sheet = SpreadsheetApp.openById(SHEETID).getSheetByName('list');
+  
+  // Clear the sheet before adding new data
+  sheet.clear();
+
+  sheet.appendRow(["File Name", "File URL", "MIME Type","Description"]);
+
+  // List of image MIME types
+  const imageMimeTypes = [
+    "image/jpeg",
+    "image/png",
+    "image/gif",
+    "image/bmp",
+    "image/webp",
+    "image/svg+xml",
+    "image/tiff"
+  ];
+
+  // Iterate through the files in the folder
+  while (files.hasNext()) {
+    const file = files.next();
+    const mimeType = file.getMimeType(); 
+    Logger.log(mimeType);
+    // Check if the file is an image
+    if (imageMimeTypes.includes(mimeType)) {
+      const fileName = file.getName();
+      const fileUrl = file.getUrl();
+      const base64 = convertToBase64(file);
+      const longDescription = createDescription (base64, file.getMimeType());
+      // Append the file name, URL, and MIME type to the spreadsheet
+      sheet.appendRow([fileName, fileUrl, mimeType,longDescription]);
+    }
+  }
+
+  // Inform the user that the process is complete
+  Logger.log('File listing complete!');
+}
+
+function convertToBase64(file) {
+  const blob = file.getBlob();
+  const base64String = Utilities.base64Encode(blob.getBytes());
+  return base64String;
+}
+
+const createDescription = (base64, fileMimeType) => {
+  try {
+    const text = `Provide a detailed long description in less than 255 characters for the image.`;
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent?key=${GEMIKEY}`;
+
+    const inlineData = {
+      mimeType: fileMimeType,
+      data: base64,
+    };
+
+    // Make a POST request to the Google Gemini Pro Vision API
+    const response = UrlFetchApp.fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      payload: JSON.stringify({
+        contents: [{ parts: [{ inlineData }, { text }] }],
+      }),
+    });
+
+    // Parse the response and extract the suggested filename
+    const data = JSON.parse(response);
+    return data.candidates[0].content.parts[0].text.trim();
+  } catch (f) {
+    return null;
+  }
+};
