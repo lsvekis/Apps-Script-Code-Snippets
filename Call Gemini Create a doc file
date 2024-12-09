@@ -1,0 +1,26 @@
+const geminiApiKey = 'AIza**********I';
+const geminiModel = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${geminiApiKey}`;
+function callGemini(q, temperature=0) {
+  const payload = { contents: [{ parts: [{ text: q }] }] };
+  const options = { 
+    'method' : 'post','contentType': 'application/json', 'payload': JSON.stringify(payload)
+  };
+  const response = UrlFetchApp.fetch(geminiModel, options);
+  const data = JSON.parse(response.getContentText());
+  const content = data["candidates"][0]["content"]["parts"][0]["text"];
+  return content;
+}
+
+function createDocWithGeminiResponse() {
+  const prompt = "What is the future of AI"; // The prompt for the Gemini API
+  const geminiResponse = callGemini(prompt); // Get the response from Gemini API
+  const doc = DocumentApp.create('Gemini API Response');
+  const docId = doc.getId();
+  const body = doc.getBody();
+  body.appendParagraph('**Prompt**:').setHeading(DocumentApp.ParagraphHeading.HEADING2);
+  body.appendParagraph(prompt); // Add the prompt
+  body.appendParagraph('**Gemini Response**:').setHeading(DocumentApp.ParagraphHeading.HEADING2);
+  body.appendParagraph(geminiResponse); // Add the response from the Gemini API
+  const docUrl = doc.getUrl();
+  Logger.log(`New document created: ${docUrl}`);
+}
