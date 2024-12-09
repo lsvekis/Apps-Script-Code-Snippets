@@ -1,0 +1,88 @@
+const IMAGEFOLDER = 'YOUR_FOLDER_ID_HERE'; // Replace with the ID of your image folder
+const SHEETID = 'YOUR_SHEET_ID_HERE'; // Replace with the ID of your Google Sheet
+const GEMIKEY = 'YOUR_GEMINI_API_KEY_HERE'; // Replace with your Gemini API Key
+
+/**
+ * List all image files in a folder, get file info, and generate AI descriptions.
+ */
+function listFilesInFolder() {
+  const folderId = IMAGEFOLDER;
+  const folder = DriveApp.getFolderById(folderId);
+  const files = folder.getFiles();
+  const sheet = SpreadsheetApp.openById(SHEETID).getSheetByName('list');
+  
+  // Clear the sheet before adding new data
+  sheet.clear();
+  sheet.appendRow(["File Name", "File URL", "MIME Type", "AI Description"]);
+
+  // Supported image MIME types
+  const imageMimeTypes = [
+    "image/jpeg",
+    "image/png",
+    "image/gif",
+    "image/bmp",
+    "image/webp",
+    "image/svg+xml",
+    "image/tiff"
+  ];
+
+  while (files.hasNext()) {
+    const file = files.next();
+    const mimeType = file.getMimeType();
+    Logger.log(mimeType);
+    
+    // Check if the file is an image
+    if (imageMimeTypes.includes(mimeType)) {
+      const fileName = file.getName();
+      const fileUrl = file.getUrl();
+      const base64 = convertToBase64(file);
+      const longDescription = createDescription(base64, file.getMimeType());
+
+      // Add the file info to the spreadsheet
+      sheet.appendRow([fileName, fileUrl, mimeType, longDescription]);
+    }
+  }
+
+  Logger.log('File listing complete!');
+}
+
+/**
+ * Convert the file to a Base64 encoded string.
+ */
+function convertToBase64(file) {
+  const blob = file.getBlob();
+  const base64String = Utilities.base64Encode(blob.getBytes());
+  return base64String;
+}
+
+/**
+ * Call Gemini AI to generate an image description.
+ */
+function createDescription(base64, fileMimeType) {
+  try {
+    const text = `Provide a detailed long description in less than 255 characters for the image.`;
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent?key=${GEMIKEY}`;
+
+    const inlineData = {
+      mimeType: fileMimeType,
+      data: base64,
+    };
+
+    // Make a POST request to the Gemini API
+    const response = UrlFetchApp.fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      payload: JSON.stringify({
+        contents: [{ parts: [{ inlineData }, { text }] }],
+      }),
+    });
+
+    const data = JSON.parse(response);
+    return data.candidates[0].content.parts[0].text.trim();
+  } catch (error) {
+    Logger.log('Error calling Gemini AI: ' + error);
+    return 'Failed to generate description';
+  }
+}
