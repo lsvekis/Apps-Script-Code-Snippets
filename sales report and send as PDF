@@ -1,0 +1,104 @@
+function AddData() {
+  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = spreadsheet.getActiveSheet();
+  sheet.clear(); // Clear existing content
+  const sampleData = [
+    ['Month', 'Sales'],
+    ['January', 1200],
+    ['February', 1500],
+    ['March', 1000],
+    ['April', 1800],
+    ['May', 2000],
+    ['June', 1700],
+    ['July', 2500],
+    ['August', 2300],
+    ['September', 1900],
+    ['October', 2200],
+    ['November', 2100],
+    ['December', 2400]
+  ];
+  sheet.getRange(1, 1, sampleData.length, sampleData[0].length).setValues(sampleData);
+}
+
+function onOpen() {
+  const ui = SpreadsheetApp.getUi();
+  ui.createMenu('📊 Custom Report')
+    .addItem('📄 Create Report as New Doc & Email PDF', 'createDocAndEmailPDF')
+    .addToUi();
+}
+
+function createDocAndEmailPDF() {
+  // Step 1: Get the active spreadsheet and data
+  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = spreadsheet.getActiveSheet();
+  const dataRange = sheet.getDataRange();
+  const data = dataRange.getValues(); // Extract live data from the sheet
+  
+  // Step 2: Create a new Google Doc
+  const doc = DocumentApp.create('Monthly Sales Report');
+  const docId = doc.getId();
+  const body = doc.getBody();
+  
+  // Step 3: Add title and introductory text
+  body.appendParagraph('📊 Monthly Sales Report').setHeading(DocumentApp.ParagraphHeading.HEADING1);
+  body.appendParagraph('This document provides an overview of the monthly sales for the current year. Below you will find the detailed sales data along with a visual representation in the form of a chart.');
+  
+  // Step 4: Insert live spreadsheet data as a table in the document
+  body.appendParagraph('📋 Sales Data Table');
+  body.appendTable(data); // Insert the dynamic data directly from the spreadsheet
+  
+  // Step 5: Create a live chart from the active sheet
+  const chart = sheet.newChart()
+    .setChartType(Charts.ChartType.COLUMN)
+    .addRange(dataRange) // Use dynamic data range from the sheet
+    .setPosition(5, 3, 0, 0) // Position of the chart (row, column, xOffset, yOffset)
+    .setOption('title', 'Monthly Sales Report')
+    .build();
+  sheet.insertChart(chart);
+  
+  // Wait for the chart to render properly
+  Utilities.sleep(2000); 
+  
+  // Get the most recent chart from the sheet
+  const charts = sheet.getCharts();
+  const chartBlob = charts[charts.length - 1].getAs('image/png');
+  
+  // Insert the chart image into the document
+  body.appendParagraph('📈 Sales Chart');
+  body.appendImage(chartBlob);
+  
+  // Step 6: Save and close the document
+  doc.saveAndClose();
+  
+  // Step 7: Export the document as a PDF
+  const pdfBlob = exportDocumentAsPDF(docId);
+  
+  // Step 8: Send the PDF via email
+  const emailAddress = Session.getActiveUser().getEmail(); // Get the active user's email
+  const subject = 'Monthly Sales Report';
+  const bodyMessage = 'Attached is your automatically generated Monthly Sales Report PDF.';
+  
+  MailApp.sendEmail({
+    to: emailAddress,
+    subject: subject,
+    body: bodyMessage,
+    attachments: [pdfBlob]
+  });
+
+  Logger.log('Email sent to ' + emailAddress);
+}
+
+function exportDocumentAsPDF(docId) {
+  // Export the document as a PDF
+  const url = `https://docs.google.com/document/d/${docId}/export?format=pdf`;
+
+  const token = ScriptApp.getOAuthToken();
+  const response = UrlFetchApp.fetch(url, {
+    headers: {
+      'Authorization': `Bearer ${token}`
+    }
+  });
+
+  const pdfBlob = response.getBlob().setName('Monthly_Sales_Report.pdf');
+  return pdfBlob;
+}
