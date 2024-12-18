@@ -1,0 +1,20 @@
+function addNewLineAfterQuestionMarks() {
+  try {
+    // Open the active Google Doc
+    const doc = DocumentApp.getActiveDocument();
+    const body = doc.getBody();
+    
+    // Get the entire text of the document
+    let text = body.getText();
+    
+    // Replace each '?' with '?\n' to add a newline after every question mark
+    const updatedText = text.replace(/\?/g, '?\n');
+    
+    // Set the updated text back into the document
+    body.setText(updatedText);
+    
+    Logger.log('New lines added after each question mark.');
+  } catch (error) {
+    Logger.log('Error: ' + error.message);
+  }
+}
