@@ -1,0 +1,18 @@
+function resetAllHeadingStyles() {
+  const doc = DocumentApp.getActiveDocument();
+  const body = doc.getBody();
+
+  // Iterate through all paragraphs in the document
+  const paragraphs = body.getParagraphs();
+
+  paragraphs.forEach(paragraph => {
+    // Check if the paragraph is a heading
+    const heading = paragraph.getHeading();
+    if (heading !== DocumentApp.ParagraphHeading.NORMAL) {
+      // Set the text style to default for the heading
+      paragraph.setHeading(heading); // This applies the default styling of the heading
+    }
+  });
+
+  Logger.log("All headings have been reset to default styling.");
+}
