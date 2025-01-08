@@ -1,0 +1,33 @@
+function reformatHeading4Questions() {
+  const doc = DocumentApp.getActiveDocument();
+  const body = doc.getBody();
+  const paragraphs = body.getParagraphs();
+
+  // Iterate through paragraphs in reverse order
+  for (let i = paragraphs.length - 1; i >= 0; i--) {
+    const paragraph = paragraphs[i];
+    
+    // Check if the paragraph is Heading 4 and matches the "Question <number>" pattern
+    if (paragraph.getHeading() === DocumentApp.ParagraphHeading.HEADING4) {
+      const text = paragraph.getText().trim();
+
+      // Match "Question <number>" where the number is between 1 and 25
+      const match = text.match(/^Question (2[0-5]|1[0-9]|[1-9])$/);
+      if (match) {
+        // Check if there is a next paragraph to move as Heading 4
+        if (i + 1 < paragraphs.length) {
+          const nextParagraph = paragraphs[i + 1];
+          const nextText = nextParagraph.getText().trim();
+
+          // Update the current Heading 4 paragraph with the next paragraph's content
+          paragraph.setText(nextText);
+
+          // Remove the "next paragraph"
+          body.removeChild(nextParagraph);
+        }
+      }
+    }
+  }
+
+  Logger.log("Processed all Heading 4 'Question' headings successfully.");
+}
