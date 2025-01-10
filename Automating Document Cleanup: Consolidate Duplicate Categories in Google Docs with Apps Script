@@ -1,0 +1,37 @@
+function combineDuplicateCategories() {
+  const DOCID = 'YOUR_DOCUMENT_ID_HERE'; // Replace with your Document ID
+  const doc = DocumentApp.openById(DOCID);
+  const body = doc.getBody();
+  const paragraphs = body.getParagraphs();
+
+  const categoryMap = new Map(); // To store category text and its corresponding content
+  let currentCategory = null;
+
+  for (let i = 0; i < paragraphs.length; i++) {
+    const paragraph = paragraphs[i];
+    const heading = paragraph.getHeading();
+    const text = paragraph.getText().trim();
+
+    if (heading === DocumentApp.ParagraphHeading.HEADING2) {
+      currentCategory = text;
+      if (!categoryMap.has(currentCategory)) {
+        categoryMap.set(currentCategory, []);
+      }
+    } else if (currentCategory && text) {
+      categoryMap.get(currentCategory).push(text); // Add content under the current category
+    }
+  }
+
+  // Clear the document content to rewrite the consolidated content
+  body.clear();
+
+  // Write consolidated categories and their content
+  categoryMap.forEach((content, category) => {
+    body.appendParagraph(category).setHeading(DocumentApp.ParagraphHeading.HEADING2);
+    content.forEach(line => {
+      body.appendParagraph(line);
+    });
+  });
+
+  Logger.log("Duplicate categories have been combined.");
+}
