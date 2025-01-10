@@ -1,0 +1,19 @@
+function countHeading4InDocument() {
+  const DOCID = 'YOUR_DOCUMENT_ID_HERE'; // Replace with your Document ID
+  const doc = DocumentApp.openById(DOCID);
+  const body = doc.getBody();
+  const paragraphs = body.getParagraphs();
+
+  let heading4Count = 0;
+
+  // Iterate through all paragraphs
+  for (let i = 0; i < paragraphs.length; i++) {
+    const paragraph = paragraphs[i];
+    if (paragraph.getHeading() === DocumentApp.ParagraphHeading.HEADING4) {
+      heading4Count++; // Increment counter if it's a Heading 4
+    }
+  }
+
+  Logger.log(`Number of Heading 4 elements: ${heading4Count}`);
+  return heading4Count; // Optional, in case you want to use it in another script
+}
