@@ -1,0 +1,28 @@
+function updateHeading3ToCategoryHeading2() {
+  const DOCID = 'YOUR_DOCUMENT_ID_HERE'; // Replace with your Document ID
+  const doc = DocumentApp.openById(DOCID);
+  const body = doc.getBody();
+  const paragraphs = body.getParagraphs();
+
+  for (let i = 0; i < paragraphs.length; i++) {
+    const paragraph = paragraphs[i];
+
+    // Check if the paragraph is Heading 3
+    if (paragraph.getHeading() === DocumentApp.ParagraphHeading.HEADING3) {
+      const text = paragraph.getText().trim();
+
+      // Match patterns like "22. Security Practices" (number, period, space, text)
+      const match = text.match(/^(\d+)\.\s+(.*)$/);
+      if (match) {
+        const newText = `Category: ${match[2]}`; // Remove number and period, prepend 'Category: '
+
+        paragraph.setText(newText); // Update the text
+        paragraph.setHeading(DocumentApp.ParagraphHeading.HEADING2); // Change to Heading 2
+
+        Logger.log(`Updated: "${text}" to "${newText}" and set as Heading 2`);
+      }
+    }
+  }
+
+  Logger.log("Processed all Heading 3 paragraphs.");
+}
