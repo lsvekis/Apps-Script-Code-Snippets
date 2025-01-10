@@ -1,0 +1,26 @@
+function addBlankLineAndBoldExplanation() {
+  const DOCID = 'YOUR_DOCUMENT_ID_HERE'; // Replace with your Document ID
+  const doc = DocumentApp.openById(DOCID);
+  const body = doc.getBody();
+  const paragraphs = body.getParagraphs();
+
+  // Iterate through all paragraphs in the document
+  for (let i = 0; i < paragraphs.length; i++) {
+    const paragraph = paragraphs[i];
+    const text = paragraph.getText().trim();
+
+    // Check if the paragraph contains "Explanation:"
+    if (text.startsWith("Explanation:")) {
+      // Bold the word "Explanation:"
+      const startIndex = text.indexOf("Explanation:");
+      const endIndex = startIndex + "Explanation:".length;
+      paragraph.editAsText().setBold(startIndex, endIndex - 1, true);
+
+      // Insert a blank line above this paragraph
+      body.insertParagraph(i, "");
+      i++; // Skip the inserted blank line to avoid reprocessing
+    }
+  }
+
+  Logger.log("Added blank lines and bolded 'Explanation:' in the document.");
+}
