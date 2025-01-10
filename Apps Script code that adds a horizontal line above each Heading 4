@@ -1,0 +1,20 @@
+function addHorizontalLineAboveHeading4() {
+  const DOCID = 'YOUR_DOCUMENT_ID_HERE'; // Replace with your Document ID
+  const doc = DocumentApp.openById(DOCID);
+  const body = doc.getBody();
+  const paragraphs = body.getParagraphs();
+
+  // Iterate through the paragraphs in reverse order
+  for (let i = paragraphs.length - 1; i >= 0; i--) {
+    const paragraph = paragraphs[i];
+
+    // Check if the paragraph is a Heading 4
+    if (paragraph.getHeading() === DocumentApp.ParagraphHeading.HEADING4) {
+      // Insert a horizontal line above the Heading 4 element
+      body.insertHorizontalRule(i);
+      Logger.log(`Added horizontal line above Heading 4 at index: ${i}`);
+    }
+  }
+
+  Logger.log("Processed all Heading 4 elements.");
+}
