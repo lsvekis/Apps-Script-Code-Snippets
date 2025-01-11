@@ -1,0 +1,66 @@
+function reorganizeDocByHeading2() {
+  const categoriesOrder = [
+    "Basics of JavaScript", 
+    "Beginner Questions", 
+    "Control Structures", 
+    "Functions",
+    "Intermediate Questions", 
+    "DOM Manipulation", 
+    "ES6+ Features", 
+    "Error Handling",
+    "Asynchronous Programming", 
+    "Advanced Questions", 
+    "Closures",
+    "Functional Programming",
+    "Object-Oriented Programming", 
+    "Design Patterns",
+    "Performance Optimization",
+    "Modules and Imports",
+    "Miscellaneous Advanced Topics"
+  ];
+
+  const doc = DocumentApp.openById(DOCID);
+  const body = doc.getBody();
+  const allContent = [];
+  
+  // Extract content under each Heading 2
+  let currentSection = { heading: "", content: [] };
+  const paragraphs = body.getParagraphs();
+
+  paragraphs.forEach(paragraph => {
+    if (paragraph.getHeading() === DocumentApp.ParagraphHeading.HEADING2) {
+      // Save current section if it exists
+      if (currentSection.heading) {
+        allContent.push(currentSection);
+      }
+      // Start new section
+      currentSection = { heading: paragraph.getText(), content: [] };
+    } else if (currentSection.heading) {
+      // Add paragraph to the current section
+      currentSection.content.push(paragraph.copy());
+    }
+  });
+  // Add the last section if it exists
+  if (currentSection.heading) {
+    allContent.push(currentSection);
+  }
+
+  // Sort sections based on the predefined order
+  allContent.sort((a, b) => {
+    const indexA = categoriesOrder.indexOf(a.heading);
+    const indexB = categoriesOrder.indexOf(b.heading);
+    return indexA - indexB;
+  });
+
+  // Clear the document
+  body.clear();
+
+  // Rebuild the document with sorted content
+  allContent.forEach(section => {
+    body.appendParagraph(section.heading).setHeading(DocumentApp.ParagraphHeading.HEADING2);
+    section.content.forEach(paragraph => body.appendParagraph(paragraph));
+    body.appendParagraph(""); // Add space between sections
+  });
+
+  Logger.log("Reorganization completed!");
+}
