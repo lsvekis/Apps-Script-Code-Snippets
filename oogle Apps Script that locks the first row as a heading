@@ -1,0 +1,13 @@
+function lockFirstRowAsHeading() {
+  // Open the active spreadsheet
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  
+  // Check if the first row is already frozen
+  if (sheet.getFrozenRows() !== 1) {
+    // Freeze the first row
+    sheet.setFrozenRows(1);
+  }
+  
+  // Notify the user
+  SpreadsheetApp.getUi().alert("The first row has been locked as a heading.");
+}
