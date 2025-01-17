@@ -1,0 +1,46 @@
+function addCourseCodesToMain() {
+  // Open the spreadsheet
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  
+  // Get the main sheet
+  var mainSheet = ss.getSheetByName('main');
+  if (!mainSheet) {
+    throw new Error("Sheet 'main' not found");
+  }
+  
+  // Get the data in column A of the main sheet
+  var mainData = mainSheet.getRange(1, 1, mainSheet.getLastRow()).getValues();
+  
+  // Sheets to match with
+  var otherSheetNames = ['Sheet1', 'Sheet2', 'Sheet3']; // Replace with actual sheet names
+  
+  // Create a lookup table for course codes
+  var courseCodeMaps = otherSheetNames.map(sheetName => {
+    var sheet = ss.getSheetByName(sheetName);
+    if (!sheet) {
+      throw new Error("Sheet '" + sheetName + "' not found");
+    }
+    var data = sheet.getRange(1, 1, sheet.getLastRow()).getValues();
+    var map = {};
+    data.forEach(row => {
+      if (row[0]) { // Only consider non-empty values
+        map[row[0]] = row[0]; // Key and value are the same (course code)
+      }
+    });
+    return map;
+  });
+  
+  // Build the result array for additional columns
+  var additionalColumns = mainData.map(row => {
+    var value = row[0]; // Value in column A of main
+    return courseCodeMaps.map(map => map[value] || ''); // Match course code or leave blank
+  });
+  
+  // Write the additional columns to the main sheet
+  if (additionalColumns.length > 0) {
+    var startColumn = 2; // Start writing at column B
+    var numRows = additionalColumns.length;
+    var numColumns = additionalColumns[0].length;
+    mainSheet.getRange(1, startColumn, numRows, numColumns).setValues(additionalColumns);
+  }
+}
