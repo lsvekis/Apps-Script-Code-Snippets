@@ -1,0 +1,30 @@
+function createFilteredSheet() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var mainSheet = ss.getSheetByName('main');
+  
+  if (!mainSheet) {
+    throw new Error("Sheet 'main' not found");
+  }
+
+  // Get all data from the 'main' sheet
+  var data = mainSheet.getDataRange().getValues();
+  
+  // Filter rows where columns A, B, and C are non-empty
+  var filteredData = data.filter(row => row[0] && row[1] && row[2]);
+  
+  // Create a new sheet or clear an existing one named 'Filtered'
+  var newSheetName = 'Filtered';
+  var filteredSheet = ss.getSheetByName(newSheetName);
+  if (!filteredSheet) {
+    filteredSheet = ss.insertSheet(newSheetName);
+  } else {
+    filteredSheet.clear(); // Clear content if the sheet already exists
+  }
+
+  // Write the filtered data to the new sheet
+  if (filteredData.length > 0) {
+    filteredSheet.getRange(1, 1, filteredData.length, filteredData[0].length).setValues(filteredData);
+  } else {
+    filteredSheet.getRange(1, 1).setValue("No matching rows found.");
+  }
+}
