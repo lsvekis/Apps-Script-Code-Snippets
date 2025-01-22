@@ -1,0 +1,51 @@
+function updateHeadingLevels() {
+  const doc = DocumentApp.getActiveDocument();
+  const body = doc.getBody();
+
+  // Array of heading types in the correct order for processing
+  const headings = [
+    DocumentApp.ParagraphHeading.HEADING4,
+    DocumentApp.ParagraphHeading.HEADING3,
+    DocumentApp.ParagraphHeading.HEADING2,
+    DocumentApp.ParagraphHeading.HEADING1
+  ];
+
+  // Iterate through each heading level starting from the smallest
+  for (let i = 0; i < headings.length; i++) {
+    const headingType = headings[i];
+    const paragraphs = body.getParagraphs();
+
+    for (let j = 0; j < paragraphs.length; j++) {
+      const paragraph = paragraphs[j];
+
+      if (paragraph.getHeading() === headingType) {
+        const newHeading = getNextHeadingAsHeading(headingType);
+        if (newHeading) {
+          if (headingType === DocumentApp.ParagraphHeading.HEADING4 && newHeading === DocumentApp.ParagraphHeading.NORMAL) {
+            // Convert Heading 4 to Normal but keep it bold
+            paragraph.setHeading(DocumentApp.ParagraphHeading.NORMAL);
+            paragraph.setBold(true);
+          } else {
+            paragraph.setHeading(newHeading);
+          }
+        }
+      }
+    }
+  }
+}
+
+// Helper function to determine the next heading level as a heading
+function getNextHeadingAsHeading(currentHeading) {
+  switch (currentHeading) {
+    case DocumentApp.ParagraphHeading.HEADING1:
+      return DocumentApp.ParagraphHeading.HEADING2;
+    case DocumentApp.ParagraphHeading.HEADING2:
+      return DocumentApp.ParagraphHeading.HEADING3;
+    case DocumentApp.ParagraphHeading.HEADING3:
+      return DocumentApp.ParagraphHeading.HEADING4;
+    case DocumentApp.ParagraphHeading.HEADING4:
+      return DocumentApp.ParagraphHeading.NORMAL;
+    default:
+      return null;
+  }
+}
