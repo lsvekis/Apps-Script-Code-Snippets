@@ -1,0 +1,17 @@
+function updateHeading3ToHeading4() {
+  var doc = DocumentApp.getActiveDocument();
+  var body = doc.getBody();
+  var paragraphs = body.getParagraphs();
+
+  for (var i = 0; i < paragraphs.length; i++) {
+    var paragraph = paragraphs[i];
+    
+    // Check if the paragraph is Heading 3 and has the exact text "Explanation"
+    if (paragraph.getHeading() === DocumentApp.ParagraphHeading.HEADING3 && 
+        paragraph.getText().trim() === "Explanation") {
+      paragraph.setHeading(DocumentApp.ParagraphHeading.HEADING4);
+    }
+  }
+  
+  Logger.log("Updated all Heading 3s with 'Explanation' to Heading 4.");
+}
