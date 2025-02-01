@@ -1,0 +1,81 @@
+function showModal() {
+  var html = HtmlService.createHtmlOutputFromFile('Index')
+      .setWidth(400)
+      .setHeight(300);
+  SpreadsheetApp.getUi().showModalDialog(html, 'Select a Sheet');
+}
+
+function getSheetNames() {
+  var sheets = SpreadsheetApp.getActiveSpreadsheet().getSheets();
+  var sheetNames = sheets.map(sheet => sheet.getName());
+  return sheetNames;
+}
+
+function findSheetData(sheetName) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
+  if (!sheet) return { success: false, data: [] };
+
+  var data = sheet.getDataRange().getValues();
+  return { success: true, data: data };
+}
+
+
+****
+      <!DOCTYPE html>
+<html>
+<head>
+    <base target="_top">
+    <style>
+        table, td {
+            border: 1px solid black;
+        }
+        td {
+            width: 100px;
+        }
+    </style>
+</head>
+<body>
+
+    <div>Select Sheet:
+        <select id="aSheets"></select>
+    </div>
+
+    <div id="output"></div>
+
+    <script>
+        var output = document.getElementById('output');
+        var aSheets = document.getElementById('aSheets');
+
+        google.script.run.withSuccessHandler(function(sheets) {
+            if (sheets.length === 0) {
+                alert('No sheets found!');
+                return;
+            }
+            sheets.forEach(sheetName => {
+                var opt = document.createElement('option');
+                opt.value = sheetName;
+                opt.innerHTML = sheetName;
+                aSheets.appendChild(opt);
+            });
+        }).getSheetNames();
+
+        aSheets.onchange = function () {
+            google.script.run.withSuccessHandler(onSuccess).findSheetData(this.value);
+        };
+
+        function onSuccess(data) {
+            if (data.success) {
+                var html = '<table>';
+                data.data.forEach(row => {
+                    html += '<tr>' + row.map(cell => `<td>${cell}</td>`).join('') + '</tr>';
+                });
+                html += '</table>';
+                output.innerHTML = html;
+            } else {
+                output.innerHTML = '<p>No data found</p>';
+            }
+        }
+    </script>
+
+</body>
+</html>
