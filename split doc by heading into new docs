@@ -1,0 +1,61 @@
+
+
+
+function splitDocumentByHeading1() {
+  var doc = DocumentApp.getActiveDocument();
+  var body = doc.getBody();
+  var paragraphs = body.getParagraphs();
+  var docName = doc.getName();
+  
+  var sectionStartIndices = [];
+  
+  // Identify all Heading 1 positions
+  for (var i = 0; i < paragraphs.length; i++) {
+    if (paragraphs[i].getHeading() == DocumentApp.ParagraphHeading.HEADING1) {
+      sectionStartIndices.push(i);
+    }
+  }
+
+  if (sectionStartIndices.length < 2) {
+    Logger.log("Not enough Heading 1 sections found.");
+    return;
+  }
+
+  // Split content into separate documents
+  for (var j = 0; j < sectionStartIndices.length; j++) {
+    var startIdx = sectionStartIndices[j];
+    var endIdx = j + 1 < sectionStartIndices.length ? sectionStartIndices[j + 1] : paragraphs.length;
+
+    var newDoc = DocumentApp.create(docName + " - Section " + (j + 1));
+    var newBody = newDoc.getBody();
+    
+    newBody.appendParagraph(docName + " - Section " + (j + 1))
+      .setHeading(DocumentApp.ParagraphHeading.TITLE);
+    
+    // Copy content between Heading 1 sections
+    for (var k = startIdx; k < endIdx; k++) {
+      copyElement(newBody, paragraphs[k]);
+    }
+
+    Logger.log("Document created: " + newDoc.getUrl());
+  }
+}
+
+/**
+ * Copies an element from the original document to the new document body.
+ */
+function copyElement(targetBody, element) {
+  var type = element.getType();
+
+  if (type == DocumentApp.ElementType.PARAGRAPH) {
+    targetBody.appendParagraph(element.copy());
+  } else if (type == DocumentApp.ElementType.LIST_ITEM) {
+    targetBody.appendListItem(element.copy());
+  } else if (type == DocumentApp.ElementType.TABLE) {
+    targetBody.appendTable(element.copy());
+  } else if (type == DocumentApp.ElementType.INLINE_IMAGE) {
+    targetBody.appendInlineImage(element.copy());
+  } else {
+    Logger.log("Skipping unsupported element: " + type);
+  }
+}
