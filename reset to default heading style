@@ -1,0 +1,35 @@
+function resetHeadingsToDefault() {
+  var doc = DocumentApp.getActiveDocument();
+  var body = doc.getBody();
+  var paragraphs = body.getParagraphs();
+
+  paragraphs.forEach(paragraph => {
+    var heading = paragraph.getHeading();
+    
+    switch (heading) {
+      case DocumentApp.ParagraphHeading.HEADING1:
+        paragraph.setHeading(DocumentApp.ParagraphHeading.HEADING1);
+        break;
+      case DocumentApp.ParagraphHeading.HEADING2:
+        paragraph.setHeading(DocumentApp.ParagraphHeading.HEADING2);
+        break;
+      case DocumentApp.ParagraphHeading.HEADING3:
+        paragraph.setHeading(DocumentApp.ParagraphHeading.HEADING3);
+        break;
+      case DocumentApp.ParagraphHeading.HEADING4:
+        paragraph.setHeading(DocumentApp.ParagraphHeading.HEADING4);
+        break;
+      case DocumentApp.ParagraphHeading.HEADING5:
+        paragraph.setHeading(DocumentApp.ParagraphHeading.HEADING5);
+        break;
+      case DocumentApp.ParagraphHeading.HEADING6:
+        paragraph.setHeading(DocumentApp.ParagraphHeading.HEADING6);
+        break;
+      default:
+        // No change for normal paragraphs
+        break;
+    }
+  });
+
+  Logger.log("All headings have been reset to their default styles.");
+}
