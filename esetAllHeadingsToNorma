@@ -1,0 +1,14 @@
+function resetAllHeadingsToNormal() {
+  var doc = DocumentApp.getActiveDocument();
+  var body = doc.getBody();
+  var paragraphs = body.getParagraphs();
+
+  paragraphs.forEach(paragraph => {
+    var heading = paragraph.getHeading();
+    if (heading !== DocumentApp.ParagraphHeading.NORMAL) {
+      paragraph.setHeading(DocumentApp.ParagraphHeading.NORMAL);
+    }
+  });
+
+  Logger.log("All headings have been reset to normal text.");
+}
