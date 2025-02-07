@@ -1,0 +1,30 @@
+function updateExerciseAndSplitLearningObjective() {
+  var doc = DocumentApp.getActiveDocument();
+  var body = doc.getBody();
+  var paragraphs = body.getParagraphs();
+  
+  for (var i = paragraphs.length - 1; i >= 0; i--) {
+    var paragraph = paragraphs[i];
+    var text = paragraph.getText();
+    
+    // Check if the paragraph starts with "Exercise"
+    if (text.startsWith("Exercise")) {
+      paragraph.setHeading(DocumentApp.ParagraphHeading.HEADING3);
+      
+      var splitIndex = text.indexOf("Learning Objective:");
+      if (splitIndex !== -1) {
+        var beforeText = text.substring(0, splitIndex).trim(); // Exercise part
+        var afterText = text.substring(splitIndex).trim(); // Learning Objective part
+        
+        // Update the original paragraph with just the Exercise part
+        paragraph.setText(beforeText);
+
+        // Insert a new paragraph after the current one with the Learning Objective text
+        var newParagraph = body.insertParagraph(i + 1, afterText);
+        newParagraph.setHeading(DocumentApp.ParagraphHeading.NORMAL);
+      }
+    }
+  }
+  
+  Logger.log("Updated all 'Exercise' headings and split 'Learning Objective:' into a new line.");
+}
