@@ -1,0 +1,839 @@
+// === Beginner Exercises (1-48) ===
+
+// Exercise 1: Display a Hello Message
+function showHello() {
+  SpreadsheetApp.getUi().alert("Hello, World!");
+}
+
+// Exercise 2: Log Current Date
+function logDate() {
+  const now = new Date();
+  Logger.log("Current Date: " + now);
+}
+
+// Exercise 3: Create a Custom Sheet Function
+function DOUBLE(number) {
+  return number * 2;
+}
+
+// Exercise 4: Get Active Spreadsheet Name
+function getSheetName() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  Logger.log("Spreadsheet Name: " + ss.getName());
+}
+
+// Exercise 5: Add a Cell Value
+function setCellValue() {
+  const sheet = SpreadsheetApp.getActiveSheet();
+  sheet.getRange("A1").setValue("Hello");
+}
+
+// Exercise 6: Read a Cell Value
+function readCell() {
+  const sheet = SpreadsheetApp.getActiveSheet();
+  const value = sheet.getRange("A1").getValue();
+  Logger.log("Cell A1: " + value);
+}
+
+// Exercise 7: Send a Simple Email
+function sendEmail() {
+  MailApp.sendEmail("recipient@example.com", "Test Email", "This is a test from GAS!");
+}
+
+// Exercise 8: Create a New Folder
+function createFolder() {
+  DriveApp.createFolder("MyFolder");
+}
+
+// Exercise 21: Clear a Cell
+function clearCell() {
+  const sheet = SpreadsheetApp.getActiveSheet();
+  sheet.getRange("A1").clear();
+}
+
+// Exercise 22: Get Current User Email
+function logUserEmail() {
+  const email = Session.getActiveUser().getEmail();
+  Logger.log("Current User Email: " + email);
+}
+
+// Exercise 23: Set Cell Background Color
+function setBackground() {
+  const sheet = SpreadsheetApp.getActiveSheet();
+  sheet.getRange("B1").setBackground("yellow");
+}
+
+// Exercise 24: Create a Simple Toast
+function showToast() {
+  SpreadsheetApp.getActiveSpreadsheet().toast("Success!", "Operation Complete", 3);
+}
+
+// Exercise 25: Add a Row
+function insertRow() {
+  const sheet = SpreadsheetApp.getActiveSheet();
+  sheet.insertRowBefore(1);
+}
+
+// Exercise 26: Get Sheet Dimensions
+function getDimensions() {
+  const sheet = SpreadsheetApp.getActiveSheet();
+  const rows = sheet.getMaxRows();
+  const cols = sheet.getMaxColumns();
+  Logger.log("Rows: " + rows + ", Columns: " + cols);
+}
+
+// Exercise 27: Rename a Sheet
+function renameSheet() {
+  const sheet = SpreadsheetApp.getActiveSheet();
+  sheet.setName("MySheet");
+}
+
+// Exercise 28: Display Confirmation Dialog
+function confirmAction() {
+  const ui = SpreadsheetApp.getUi();
+  const response = ui.alert("Confirm", "Are you sure?", ui.ButtonSet.YES_NO);
+  Logger.log("User response: " + (response === ui.Button.YES ? "Yes" : "No"));
+}
+
+// Exercise 41: Set Cell Font Size
+function setFontSize() {
+  const sheet = SpreadsheetApp.getActiveSheet();
+  sheet.getRange("A1").setFontSize(14);
+}
+
+// Exercise 42: Get Current Time Zone
+function getTimeZone() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const timeZone = ss.getSpreadsheetTimeZone();
+  Logger.log("Time Zone: " + timeZone);
+}
+
+// Exercise 43: Protect a Range
+function protectRange() {
+  const sheet = SpreadsheetApp.getActiveSheet();
+  const range = sheet.getRange("A1:A5");
+  const protection = range.protect().setDescription("Locked Range");
+  protection.removeEditors(protection.getEditors());
+  protection.addEditor(Session.getActiveUser());
+}
+
+// Exercise 44: Show Prompt Dialog
+function showPrompt() {
+  const ui = SpreadsheetApp.getUi();
+  const response = ui.prompt("Enter Name", "What’s your name?", ui.ButtonSet.OK_CANCEL);
+  if (response.getSelectedButton() === ui.Button.OK) {
+    Logger.log("Name entered: " + response.getResponseText());
+  } else {
+    Logger.log("Prompt cancelled");
+  }
+}
+
+// Exercise 45: Freeze First Row
+function freezeRow() {
+  const sheet = SpreadsheetApp.getActiveSheet();
+  sheet.setFrozenRows(1);
+}
+
+// Exercise 46: Get Last Row with Data
+function getLastRow() {
+  const sheet = SpreadsheetApp.getActiveSheet();
+  const lastRow = sheet.getLastRow();
+  Logger.log("Last Row with Data: " + lastRow);
+}
+
+// Exercise 47: Hide a Sheet
+function hideSheet() {
+  const sheet = SpreadsheetApp.getActiveSheet();
+  sheet.hideSheet();
+}
+
+// Exercise 48: Set Cell Formula
+function setFormula() {
+  const sheet = SpreadsheetApp.getActiveSheet();
+  sheet.getRange("B1").setFormula("=SUM(A1:A5)");
+}
+
+// Exercise 61: Set Cell Text Color
+function setTextColor() {
+  const sheet = SpreadsheetApp.getActiveSheet();
+  sheet.getRange("A1").setFontColor("red");
+}
+
+// Exercise 62: Get Spreadsheet URL
+function getSpreadsheetUrl() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const url = ss.getUrl();
+  Logger.log("Spreadsheet URL: " + url);
+}
+
+// Exercise 63: Auto-Fit Column Width
+function autoFitColumn() {
+  const sheet = SpreadsheetApp.getActiveSheet();
+  sheet.autoResizeColumn(1);
+}
+
+// Exercise 64: Show Info Toast
+function showTimeToast() {
+  const now = new Date().toLocaleTimeString();
+  SpreadsheetApp.getActiveSpreadsheet().toast("Current Time: " + now, "Info", 5);
+}
+
+// Exercise 65: Insert Column
+function insertColumn() {
+  const sheet = SpreadsheetApp.getActiveSheet();
+  sheet.insertColumnBefore(2);
+}
+
+// Exercise 66: Get File Size
+function getFileSize() {
+  const file = DriveApp.getFilesByName("My New Doc").next();
+  const size = file.getSize();
+  Logger.log("File Size: " + size + " bytes");
+}
+
+// Exercise 67: Set Row Height
+function setRowHeight() {
+  const sheet = SpreadsheetApp.getActiveSheet();
+  sheet.setRowHeight(1, 50);
+}
+
+// Exercise 68: Display Yes/No/Cancel Dialog
+function yesNoCancelDialog() {
+  const ui = SpreadsheetApp.getUi();
+  const response = ui.alert("Choose", "Proceed?", ui.ButtonSet.YES_NO_CANCEL);
+  Logger.log("Response: " + response);
+}
+
+// Exercise 81: Set Cell Border
+function setBorder() {
+  const sheet = SpreadsheetApp.getActiveSheet();
+  const range = sheet.getRange("A1");
+  range.setBorder(true, true, true, true, false, false, "black", SpreadsheetApp.BorderStyle.SOLID);
+}
+
+// Exercise 82: Get Active Cell Value
+function getActiveCell() {
+  const sheet = SpreadsheetApp.getActiveSheet();
+  const value = sheet.getActiveCell().getValue();
+  Logger.log("Active Cell Value: " + value);
+}
+
+// Exercise 83: Activate a Sheet
+function activateSheet() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName("Sheet2");
+  if (sheet) {
+    sheet.activate();
+  } else {
+    Logger.log("Sheet2 not found");
+  }
+}
+
+// Exercise 84: Show Custom Alert with Input
+function customAlert() {
+  const ui = SpreadsheetApp.getUi();
+  const response = ui.prompt("Input", "Enter a number:", ui.ButtonSet.OK);
+  if (response.getSelectedButton() === ui.Button.OK) {
+    Logger.log("Number entered: " + response.getResponseText());
+  }
+}
+
+// Exercise 85: Insert Blank Rows
+function insertRows() {
+  const sheet = SpreadsheetApp.getActiveSheet();
+  sheet.insertRowsAfter(2, 3);
+}
+
+// Exercise 86: Get Folder ID
+function getFolderId() {
+  const folder = DriveApp.getFolderById("YOUR_FOLDER_ID"); // Replace with real ID
+  Logger.log("Folder ID: " + folder.getId());
+}
+
+// Exercise 87: Set Column Width
+function setColumnWidth() {
+  const sheet = SpreadsheetApp.getActiveSheet();
+  sheet.setColumnWidth(1, 150);
+}
+
+// Exercise 88: Get Document Owner
+function getDocOwner() {
+  const doc = DocumentApp.openById("YOUR_DOC_ID"); // Replace with real ID
+  const owner = doc.getOwner().getEmail();
+  Logger.log("Document Owner: " + owner);
+}
+
+// === Intermediate Exercises (9-14, 29-34, 49-54, 69-74, 89-94) ===
+
+// Exercise 9: Populate a Range
+function fillRange() {
+  const sheet = SpreadsheetApp.getActiveSheet();
+  const values = [[1], [2], [3], [4], [5]];
+  sheet.getRange("A1:A5").setValues(values);
+}
+
+// Exercise 10: Read Multiple Cells
+function readRange() {
+  const sheet = SpreadsheetApp.getActiveSheet();
+  const data = sheet.getRange("A1:B2").getValues();
+  Logger.log("Range Data: " + data);
+}
+
+// Exercise 11: Create a Google Doc
+function createDoc() {
+  const doc = DocumentApp.create("My New Doc");
+  doc.getBody().setText("This is a new document.");
+}
+
+// Exercise 12: List Drive Files
+function listFiles() {
+  const files = DriveApp.getFiles();
+  while (files.hasNext()) {
+    const file = files.next();
+    Logger.log("File: " + file.getName());
+  }
+}
+
+// Exercise 13: Send Email with Sheet Data
+function emailCellValue() {
+  const sheet = SpreadsheetApp.getActiveSheet();
+  const value = sheet.getRange("A1").getValue();
+  MailApp.sendEmail("recipient@example.com", "Sheet Data", "Value in A1: " + value);
+}
+
+// Exercise 14: Add a Custom Menu
+function onOpen() {
+  const ui = SpreadsheetApp.getUi();
+  ui.createMenu("My Menu")
+    .addItem("Run Function", "myFunction")
+    .addToUi();
+}
+
+function myFunction() {
+  SpreadsheetApp.getUi().alert("Menu item clicked!");
+}
+
+// Exercise 29: Copy Range to Another Sheet
+function copyRange() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sourceSheet = ss.getSheetByName("Sheet1");
+  const targetSheet = ss.getSheetByName("Sheet2") || ss.insertSheet("Sheet2");
+  const values = sourceSheet.getRange("A1:A5").getValues();
+  targetSheet.getRange("A1:A5").setValues(values);
+}
+
+// Exercise 30: Append Row with Data
+function appendRow() {
+  const sheet = SpreadsheetApp.getActiveSheet();
+  const data = ["John", 25, "New York"];
+  sheet.appendRow(data);
+}
+
+// Exercise 31: Search Drive for Files
+function searchFiles() {
+  const files = DriveApp.searchFiles("title contains 'test'");
+  while (files.hasNext()) {
+    const file = files.next();
+    Logger.log("Found: " + file.getName());
+  }
+}
+
+// Exercise 32: Create a Calendar Event
+function createEvent() {
+  const calendar = CalendarApp.getDefaultCalendar();
+  const start = new Date("2025-02-20T10:00:00");
+  const end = new Date("2025-02-20T11:00:00");
+  calendar.createEvent("Meeting", start, end);
+}
+
+// Exercise 33: Send Email with Multiple Recipients
+function emailMultiple() {
+  const recipients = "user1@example.com, user2@example.com";
+  MailApp.sendEmail(recipients, "Group Email", "Hello everyone!");
+}
+
+// Exercise 34: Sort Sheet Data
+function sortSheet() {
+  const sheet = SpreadsheetApp.getActiveSheet();
+  const range = sheet.getRange("A1:A" + sheet.getLastRow());
+  range.sort(1);
+}
+
+// Exercise 49: Clear Multiple Cells
+function clearRange() {
+  const sheet = SpreadsheetApp.getActiveSheet();
+  sheet.getRange("A1:B5").clear();
+}
+
+// Exercise 50: Move File to Folder
+function moveFile() {
+  const file = DriveApp.getFilesByName("My New Doc").next();
+  const folder = DriveApp.getFolderById("YOUR_FOLDER_ID"); // Replace with real ID
+  file.moveTo(folder);
+}
+
+// Exercise 51: Add Paragraph to Doc
+function appendParagraph() {
+  const doc = DocumentApp.openById("YOUR_DOC_ID"); // Replace with real ID
+  const body = doc.getBody();
+  body.appendParagraph("This is an appended paragraph.");
+}
+
+// Exercise 52: Get Calendar Events
+function listTodayEvents() {
+  const calendar = CalendarApp.getDefaultCalendar();
+  const today = new Date();
+  const events = calendar.getEventsForDay(today);
+  events.forEach(event => Logger.log("Event: " + event.getTitle()));
+}
+
+// Exercise 53: Send Email with HTML
+function sendHtmlEmail() {
+  const htmlBody = "<h1>Hello</h1><p>This is <b>bold</b> text.</p>";
+  MailApp.sendEmail({
+    to: "recipient@example.com",
+    subject: "HTML Email",
+    htmlBody: htmlBody
+  });
+}
+
+// Exercise 54: Filter Sheet Data
+function filterData() {
+  const sheet = SpreadsheetApp.getActiveSheet();
+  const data = sheet.getDataRange().getValues();
+  const filtered = data.filter(row => row[0] > 10);
+  Logger.log("Filtered Data: " + filtered);
+}
+
+// Exercise 69: Duplicate a Sheet
+function duplicateSheet() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getActiveSheet();
+  sheet.copyTo(ss).setName("Copy of " + sheet.getName());
+}
+
+// Exercise 70: Move Range to New Sheet
+function moveRange() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sourceSheet = ss.getActiveSheet();
+  const values = sourceSheet.getRange("A1:B5").getValues();
+  const newSheet = ss.insertSheet("NewSheet");
+  newSheet.getRange("A1:B5").setValues(values);
+  sourceSheet.getRange("A1:B5").clear();
+}
+
+// Exercise 71: Replace Text in Doc
+function replaceText() {
+  const doc = DocumentApp.openById("YOUR_DOC_ID"); // Replace with real ID
+  const body = doc.getBody();
+  body.replaceText("Hello", "Hi");
+}
+
+// Exercise 72: Mark Gmail as Read
+function markRead() {
+  const threads = GmailApp.search("is:unread");
+  threads.forEach(thread => thread.markRead());
+}
+
+// Exercise 73: Send Email with Attachment
+function sendEmailWithAttachment() {
+  const file = DriveApp.getFilesByName("My New Doc").next();
+  MailApp.sendEmail({
+    to: "recipient@example.com",
+    subject: "File Attachment",
+    body: "See attached file.",
+    attachments: [file.getBlob()]
+  });
+}
+
+// Exercise 74: Filter and Copy Data
+function filterAndCopy() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sourceSheet = ss.getActiveSheet();
+  const data = sourceSheet.getDataRange().getValues();
+  const filtered = data.filter(row => row[1] > 20);
+  const newSheet = ss.insertSheet("FilteredData");
+  newSheet.getRange(1, 1, filtered.length, filtered[0].length).setValues(filtered);
+}
+
+// Exercise 89: Delete Rows
+function deleteRows() {
+  const sheet = SpreadsheetApp.getActiveSheet();
+  sheet.deleteRows(3, 3);
+}
+
+// Exercise 90: Move Sheet to New Spreadsheet
+function moveSheet() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getActiveSheet();
+  const newSs = SpreadsheetApp.create("New Spreadsheet");
+  sheet.copyTo(newSs);
+  ss.deleteSheet(sheet);
+}
+
+// Exercise 91: Append Table to Doc
+function appendTable() {
+  const doc = DocumentApp.openById("YOUR_DOC_ID"); // Replace with real ID
+  const body = doc.getBody();
+  const table = body.appendTable([["A1", "B1"], ["A2", "B2"]]);
+}
+
+// Exercise 92: Mark Gmail as Read
+function markRead() {
+  const threads = GmailApp.search("is:unread");
+  threads.forEach(thread => thread.markRead());
+}
+
+// Exercise 93: Send Email with CC
+function sendEmailWithCC() {
+  MailApp.sendEmail({
+    to: "recipient@example.com",
+    cc: "cc@example.com",
+    subject: "Email with CC",
+    body: "Hello from GAS!"
+  });
+}
+
+// Exercise 94: Copy Folder Contents
+function copyFolderContents() {
+  const sourceFolder = DriveApp.getFolderById("SOURCE_FOLDER_ID"); // Replace with real ID
+  const targetFolder = DriveApp.getFolderById("TARGET_FOLDER_ID"); // Replace with real ID
+  const files = sourceFolder.getFiles();
+  while (files.hasNext()) {
+    files.next().makeCopy(targetFolder);
+  }
+}
+
+// === Advanced Exercises (15-20, 35-40, 55-60, 75-80, 95-100) ===
+
+// Exercise 15: Fetch API Data
+function fetchExchangeRates() {
+  const url = "https://api.exchangerate-api.com/v4/latest/USD";
+  const response = UrlFetchApp.fetch(url);
+  const data = JSON.parse(response.getContentText());
+  Logger.log("USD to EUR: " + data.rates.EUR);
+}
+
+// Exercise 16: Create a Time-Driven Trigger
+function createTrigger() {
+  ScriptApp.newTrigger("logMessage")
+    .timeBased()
+    .everyMinutes(1)
+    .create();
+}
+
+function logMessage() {
+  Logger.log("This runs every minute: " + new Date());
+}
+
+// Exercise 17: Copy a File
+function copyFile() {
+  const file = DriveApp.getFilesByName("My New Doc").next();
+  file.makeCopy("Copy of My New Doc");
+}
+
+// Exercise 18: Format Sheet Cells
+function formatCells() {
+  const sheet = SpreadsheetApp.getActiveSheet();
+  const range = sheet.getRange("A1:A5");
+  range.setFontWeight("bold");
+  range.setBackground("green");
+}
+
+// Exercise 19: Add Comment to Doc
+function addComment() {
+  const doc = DocumentApp.openById("YOUR_DOC_ID"); // Replace with real ID
+  const body = doc.getBody();
+  body.editAsText().insertText(0, "Start ");
+  doc.addComment(body, "This is a comment", "user@example.com");
+}
+
+// Exercise 20: Create a Web App
+function doGet() {
+  return HtmlService.createHtmlOutput("<h1>Hello from GAS!</h1>");
+}
+
+// Exercise 35: Batch Update Cells
+function batchUpdate() {
+  const sheet = SpreadsheetApp.getActiveSheet();
+  const data = Array.from({ length: 5 }, (_, i) => [i + 1, (i + 1) * 2]);
+  sheet.getRange("A1:B5").setValues(data);
+}
+
+// Exercise 36: Export Sheet as PDF
+function exportAsPDF() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getActiveSheet();
+  const url = "https://docs.google.com/spreadsheets/d/" + ss.getId() + "/export?format=pdf&gid=" + sheet.getSheetId();
+  const blob = UrlFetchApp.fetch(url, { headers: { authorization: "Bearer " + ScriptApp.getOAuthToken() } }).getBlob();
+  DriveApp.createFile(blob.setName(sheet.getName() + ".pdf"));
+}
+
+// Exercise 37: Create a Custom Sidebar
+function onOpen() {
+  const ui = SpreadsheetApp.getUi();
+  ui.createMenu("Sidebar Menu")
+    .addItem("Show Sidebar", "showSidebar")
+    .addToUi();
+}
+
+function showSidebar() {
+  const html = HtmlService.createHtmlOutput("<p>Hello from the sidebar!</p>")
+    .setTitle("My Sidebar");
+  SpreadsheetApp.getUi().showSidebar(html);
+}
+
+// Exercise 38: Parse Gmail Messages
+function readGmail() {
+  const threads = GmailApp.search("is:unread", 0, 5);
+  threads.forEach(thread => {
+    const message = thread.getMessages()[0];
+    Logger.log("Subject: " + message.getSubject());
+  });
+}
+
+// Exercise 39: Update Doc with Sheet Data
+function updateDocFromSheet() {
+  const sheet = SpreadsheetApp.getActiveSheet();
+  const data = sheet.getRange("A1:B2").getValues();
+  const doc = DocumentApp.openById("YOUR_DOC_ID"); // Replace with real ID
+  const body = doc.getBody();
+  data.forEach(row => body.appendParagraph(row.join(" - ")));
+}
+
+// Exercise 40: Schedule Email with Trigger
+function createDailyTrigger() {
+  ScriptApp.newTrigger("sendDailyEmail")
+    .timeBased()
+    .everyDays(1)
+    .atHour(9)
+    .create();
+}
+
+function sendDailyEmail() {
+  MailApp.sendEmail("recipient@example.com", "Daily Update", "Good morning!");
+}
+
+// Exercise 55: Create a Chart
+function createChart() {
+  const sheet = SpreadsheetApp.getActiveSheet();
+  const dataRange = sheet.getRange("A1:B5");
+  sheet.insertChart(
+    Charts.newBarChart()
+      .setTitle("Sample Bar Chart")
+      .setXAxisTitle("Column A")
+      .setYAxisTitle("Column B")
+      .setRange(0, 100)
+      .addRange(dataRange)
+      .setPosition(1, 1, 0, 0)
+      .build()
+  );
+}
+
+// Exercise 56: Sync Sheet with Calendar
+function syncToCalendar() {
+  const sheet = SpreadsheetApp.getActiveSheet();
+  const data = sheet.getRange("A2:B4").getValues();
+  const calendar = CalendarApp.getDefaultCalendar();
+  data.forEach(([title, date]) => {
+    const start = new Date(date);
+    const end = new Date(start.getTime() + 60 * 60 * 1000);
+    calendar.createEvent(title, start, end);
+  });
+}
+
+// Exercise 57: Custom Dialog with Form
+function onOpen() {
+  SpreadsheetApp.getUi()
+    .createMenu("Form Menu")
+    .addItem("Show Form", "showForm")
+    .addToUi();
+}
+
+function showForm() {
+  const html = HtmlService.createHtmlOutputFromFile("form.html")
+    .setWidth(300)
+    .setHeight(200);
+  SpreadsheetApp.getUi().showModalDialog(html, "Input Form");
+}
+
+function processForm(data) {
+  Logger.log("Submitted: " + JSON.stringify(data));
+}
+// form.html: <!DOCTYPE html><html><body><form onsubmit="google.script.run.processForm(this); google.script.host.close(); return false;"><label>Name: <input type="text" name="name"></label><br><input type="submit" value="Submit"></form></body></html>
+
+// Exercise 58: Import CSV from Drive
+function importCSV() {
+  const file = DriveApp.getFilesByName("data.csv").next();
+  const csvData = Utilities.parseCsv(file.getBlob().getDataAsString());
+  const sheet = SpreadsheetApp.getActiveSheet();
+  sheet.getRange(1, 1, csvData.length, csvData[0].length).setValues(csvData);
+}
+
+// Exercise 59: Batch Email from Sheet
+function batchEmail() {
+  const sheet = SpreadsheetApp.getActiveSheet();
+  const data = sheet.getRange("A2:B" + sheet.getLastRow()).getValues();
+  data.forEach(([email, message]) => {
+    if (email) {
+      MailApp.sendEmail(email, "Batch Email", message);
+    }
+  });
+}
+
+// Exercise 60: Sync Doc to Sheet
+function docToSheet() {
+  const doc = DocumentApp.openById("YOUR_DOC_ID"); // Replace with real ID
+  const text = doc.getBody().getText();
+  const sheet = SpreadsheetApp.getActiveSheet();
+  sheet.getRange("A1").setValue(text);
+}
+
+// Exercise 75: Create a Pie Chart
+function createPieChart() {
+  const sheet = SpreadsheetApp.getActiveSheet();
+  const dataRange = sheet.getRange("A1:B5");
+  sheet.insertChart(
+    Charts.newPieChart()
+      .setTitle("Pie Chart Example")
+      .addRange(dataRange)
+      .setPosition(1, 4, 0, 0)
+      .build()
+  );
+}
+
+// Exercise 76: Sync Calendar to Sheet
+function calendarToSheet() {
+  const calendar = CalendarApp.getDefaultCalendar();
+  const today = new Date();
+  const events = calendar.getEventsForDay(today);
+  const sheet = SpreadsheetApp.getActiveSheet();
+  const data = events.map(event => [event.getTitle(), event.getStartTime().toLocaleString()]);
+  sheet.getRange(1, 1, data.length, 2).setValues(data);
+}
+
+// Exercise 77: Custom HTML Service Web App
+function doGet() {
+  return HtmlService.createTemplateFromFile("index").evaluate();
+}
+
+function processForm(form) {
+  const sheet = SpreadsheetApp.getActiveSheet();
+  sheet.appendRow([form.name, new Date()]);
+  return "Received: " + form.name;
+}
+// index.html: <!DOCTYPE html><html><body><form onsubmit="google.script.run.withSuccessHandler(result => document.getElementById('output').innerText = result).processForm(this); return false;"><label>Name: <input type="text" name="name"></label><br><input type="submit" value="Submit"></form><div id="output"></div></body></html>
+
+// Exercise 78: Import JSON API to Sheet
+function importWeather() {
+  const url = "https://api.openweathermap.org/data/2.5/weather?q=London&appid=YOUR_API_KEY"; // Replace with real key
+  const response = UrlFetchApp.fetch(url);
+  const data = JSON.parse(response.getContentText());
+  const sheet = SpreadsheetApp.getActiveSheet();
+  sheet.getRange("A1:B1").setValues([["City", "Temperature"]]);
+  sheet.getRange("A2:B2").setValues([[data.name, data.main.temp]]);
+}
+
+// Exercise 79: Batch Delete Files
+function batchDelete() {
+  const files = DriveApp.getFilesByName("Copy of My New Doc");
+  while (files.hasNext()) {
+    const file = files.next();
+    file.setTrashed(true);
+  }
+}
+
+// Exercise 80: Dynamic Spreadsheet Report
+function createReport() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getActiveSheet();
+  const data = sheet.getRange("A1:B" + sheet.getLastRow()).getValues();
+  const totals = data.reduce((acc, [_, value]) => acc + (Number(value) || 0), 0);
+  const reportSheet = ss.insertSheet("Report");
+  reportSheet.getRange("A1:B2").setValues([
+    ["Total", totals],
+    ["Count", data.length]
+  ]);
+}
+
+// Exercise 95: Create a Line Chart
+function createLineChart() {
+  const sheet = SpreadsheetApp.getActiveSheet();
+  const dataRange = sheet.getRange("A1:B5");
+  sheet.insertChart(
+    Charts.newLineChart()
+      .setTitle("Line Chart Example")
+      .addRange(dataRange)
+      .setXAxisTitle("Date")
+      .setYAxisTitle("Value")
+      .setPosition(1, 4, 0, 0)
+      .build()
+  );
+}
+
+// Exercise 96: Sync Sheet to Doc Table
+function sheetToDocTable() {
+  const sheet = SpreadsheetApp.getActiveSheet();
+  const data = sheet.getRange("A1:B3").getValues();
+  const doc = DocumentApp.openById("YOUR_DOC_ID"); // Replace with real ID
+  const body = doc.getBody();
+  const table = body.appendTable(data);
+}
+
+// Exercise 97: Custom Card Service UI
+function onOpen() {
+  SpreadsheetApp.getUi()
+    .createMenu("Card Menu")
+    .addItem("Show Card", "showCard")
+    .addToUi();
+}
+
+function showCard() {
+  const card = CardService.newCardBuilder()
+    .setHeader(CardService.newCardHeader().setTitle("My Card"))
+    .addSection(
+      CardService.newCardSection()
+        .addWidget(CardService.newTextInput().setFieldName("name").setTitle("Name"))
+        .addWidget(CardService.newTextButton().setText("Submit").setOnClickAction(CardService.newAction().setFunctionName("handleSubmit")))
+    )
+    .build();
+  return card;
+}
+
+function handleSubmit(e) {
+  Logger.log("Form data: " + JSON.stringify(e.formInput));
+}
+
+// Exercise 98: Fetch and Parse RSS Feed
+function fetchRSS() {
+  const url = "https://rss.nytimes.com/services/xml/rss/nyt/World.xml";
+  const response = UrlFetchApp.fetch(url);
+  const xml = XmlService.parse(response.getContentText());
+  const items = xml.getRootElement().getChildren("channel")[0].getChildren("item");
+  items.forEach(item => Logger.log("Title: " + item.getChildText("title")));
+}
+
+// Exercise 99: Batch Calendar Updates
+function updateCalendarEvents() {
+  const sheet = SpreadsheetApp.getActiveSheet();
+  const data = sheet.getRange("A2:B" + sheet.getLastRow()).getValues();
+  const calendar = CalendarApp.getDefaultCalendar();
+  const today = new Date();
+  const events = calendar.getEventsForDay(today);
+  data.forEach(([title, desc]) => {
+    const event = events.find(e => e.getTitle() === title);
+    if (event) event.setDescription(desc);
+  });
+}
+
+// Exercise 100: Dynamic Forms API Integration
+function doGet() {
+  return HtmlService.createTemplateFromFile("form").evaluate();
+}
+
+function processForm(form) {
+  const sheet = SpreadsheetApp.getActiveSheet();
+  sheet.appendRow([form.name, new Date()]);
+  return "Submitted: " + form.name;
+}
+// form.html: <!DOCTYPE html><html><body><form onsubmit="google.script.run.withSuccessHandler(result => document.getElementById('output').innerText = result).processForm(this); return false;"><label>Name: <input type="text" name="name"></label><br><input type="submit" value="Submit"></form><div id="output"></div></body></html>
