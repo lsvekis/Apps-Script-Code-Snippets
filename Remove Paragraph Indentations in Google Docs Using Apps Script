@@ -1,0 +1,20 @@
+function removeParagraphIndentations() {
+  var doc = DocumentApp.getActiveDocument();
+  var body = doc.getBody();
+  var numParagraphs = body.getNumChildren();
+  
+  for (var i = 0; i < numParagraphs; i++) {
+    var element = body.getChild(i);
+    
+    // Check if the element is a paragraph
+    if (element.getType() === DocumentApp.ElementType.PARAGRAPH) {
+      var paragraph = element.asParagraph();
+      
+      // Remove indentations by setting the indentation attributes to 0
+      paragraph.setIndentStart(0); // Removes left indentation
+      paragraph.setIndentFirstLine(0); // Removes first-line indentation
+    }
+  }
+  
+  Logger.log("All paragraph indentations have been removed.");
+}
