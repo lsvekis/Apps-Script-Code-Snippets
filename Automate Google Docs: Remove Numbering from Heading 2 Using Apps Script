@@ -1,0 +1,22 @@
+function removeNumberFromH2Headings() {
+  var doc = DocumentApp.getActiveDocument();
+  var body = doc.getBody();
+  var paragraphs = body.getParagraphs();
+  
+  for (var i = 0; i < paragraphs.length; i++) {
+    var paragraph = paragraphs[i];
+
+    // Check if the paragraph is Heading 2
+    if (paragraph.getHeading() === DocumentApp.ParagraphHeading.HEADING2) {
+      var text = paragraph.getText();
+
+      // Use regex to remove the leading number followed by a dot and space
+      var updatedText = text.replace(/^\d+\.\s*/, '');
+
+      // Update the paragraph text
+      if (updatedText !== text) {
+        paragraph.setText(updatedText);
+      }
+    }
+  }
+}
