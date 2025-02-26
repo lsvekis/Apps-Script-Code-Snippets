@@ -1,0 +1,21 @@
+function numberHeading2InDoc() {
+  var doc = DocumentApp.getActiveDocument();
+  var body = doc.getBody();
+  var paragraphs = body.getParagraphs();
+  var count = 1; // Start numbering from 1
+  
+  for (var i = 0; i < paragraphs.length; i++) {
+    var paragraph = paragraphs[i];
+
+    // Check if the paragraph is Heading 2
+    if (paragraph.getHeading() === DocumentApp.ParagraphHeading.HEADING2) {
+      var text = paragraph.getText().trim();
+
+      // Check if the heading is already numbered to prevent duplicate numbering
+      if (!/^\d+\.\s/.test(text)) {
+        paragraph.setText(count + ". " + text);
+        count++; // Increment the counter
+      }
+    }
+  }
+}
