@@ -1,0 +1,14 @@
+function convertH3toH2() {
+  var doc = DocumentApp.getActiveDocument();
+  var body = doc.getBody();
+  var paragraphs = body.getParagraphs();
+  
+  for (var i = 0; i < paragraphs.length; i++) {
+    var para = paragraphs[i];
+    if (para.getHeading() === DocumentApp.ParagraphHeading.HEADING3) {
+      para.setHeading(DocumentApp.ParagraphHeading.HEADING2);
+    }
+  }
+  
+  Logger.log("Conversion complete: All H3 headings changed to H2.");
+}
