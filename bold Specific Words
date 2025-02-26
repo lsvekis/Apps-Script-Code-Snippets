@@ -1,0 +1,17 @@
+function boldSpecificWords() {
+  var doc = DocumentApp.getActiveDocument();
+  var body = doc.getBody();
+  var paragraphs = body.getParagraphs();
+  
+  var wordsToBold = ["Objective", "Code", "Explanation"];
+
+  paragraphs.forEach(paragraph => {
+    var text = paragraph.getText().trim();
+    
+    if (wordsToBold.includes(text)) {
+      paragraph.setBold(true);
+    }
+  });
+
+  Logger.log("Specified words have been bolded.");
+}
