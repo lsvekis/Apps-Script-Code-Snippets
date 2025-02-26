@@ -1,0 +1,25 @@
+function resetHeadingSizes() {
+  var doc = DocumentApp.getActiveDocument();
+  var body = doc.getBody();
+  var paragraphs = body.getParagraphs();
+  
+  // Define default font sizes for headings
+  var headingSizes = {
+    [DocumentApp.ParagraphHeading.HEADING1]: 24,
+    [DocumentApp.ParagraphHeading.HEADING2]: 20,
+    [DocumentApp.ParagraphHeading.HEADING3]: 18,
+    [DocumentApp.ParagraphHeading.HEADING4]: 16,
+    [DocumentApp.ParagraphHeading.HEADING5]: 14,
+    [DocumentApp.ParagraphHeading.HEADING6]: 12
+  };
+
+  // Iterate through paragraphs and reset heading sizes
+  paragraphs.forEach(paragraph => {
+    var heading = paragraph.getHeading();
+    if (heading in headingSizes) {
+      paragraph.setFontSize(headingSizes[heading]);
+    }
+  });
+
+  Logger.log("Headings have been reset to default sizes.");
+}
