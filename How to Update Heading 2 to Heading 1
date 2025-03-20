@@ -1,0 +1,16 @@
+function updateHeading2ToHeading1() {
+  var doc = DocumentApp.getActiveDocument();
+  var body = doc.getBody();
+  
+  // Get all paragraphs in the document
+  var paragraphs = body.getParagraphs();
+  
+  // Loop through paragraphs and update Heading2 to Heading1
+  paragraphs.forEach(function(paragraph) {
+    if (paragraph.getHeading() == DocumentApp.ParagraphHeading.HEADING2) {
+      paragraph.setHeading(DocumentApp.ParagraphHeading.HEADING1);
+    }
+  });
+
+  Logger.log("Updated all Heading 2 to Heading 1.");
+}
