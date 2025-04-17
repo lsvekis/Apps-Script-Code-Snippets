@@ -1,0 +1,30 @@
+function boldQuestionSentences() {
+  // Get the active document body.
+  var body = DocumentApp.getActiveDocument().getBody();
+  // Get all paragraphs in the document.
+  var paragraphs = body.getParagraphs();
+  
+  // Loop over each paragraph.
+  for (var i = 0; i < paragraphs.length; i++) {
+    var paragraph = paragraphs[i];
+    // Get the full text of the paragraph.
+    var text = paragraph.getText();
+    
+    // This regex matches sequences of characters ending with one or more question marks.
+    var sentenceRegex = /[^.!?]+[?]+/g;
+    var match;
+    
+    // Loop over all matches (i.e. candidate sentences ending with '?' in this paragraph).
+    while ((match = sentenceRegex.exec(text)) !== null) {
+      var sentence = match[0];
+      // Trim whitespace and check if the sentence indeed ends with a '?'
+      if (sentence.trim().slice(-1) === '?') {
+        // Determine start and end indices of the found sentence within the paragraph.
+        var start = match.index;
+        var end = match.index + sentence.length - 1;
+        // Bold the text range.
+        paragraph.editAsText().setBold(start, end, true);
+      }
+    }
+  }
+}
