@@ -1,0 +1,251 @@
+/**
+ * @OnlyCurrentDoc
+ *
+ * This script provides functions to clean up a Google Document by:
+ * 1. Removing blank or empty lines (paragraphs and list items).
+ * 2. Converting single bullet list items back to regular paragraphs.
+ * 3. Cleaning up hidden/non-printable characters often introduced by copy-pasting.
+ */
+
+// IMPORTANT: Replace 'YOUR_DOCUMENT_ID_HERE' with the actual ID of your Google Doc.
+// You can find the Document ID in the URL of your Google Doc:
+// https://docs.google.com/document/d/YOUR_DOCUMENT_ID_HERE/edit
+const DOCID = '1*****H2UFYLavFiTg';
+
+/**
+ * Main function to run all cleaning operations on the document specified by DOCID.
+ * Logs messages upon completion or error, as there is no UI for standalone scripts.
+ */
+function cleanDocument() {
+  try {
+    // IMPORTANT: Clean hidden characters BEFORE removing blank lines.
+    // This ensures that lines that appear blank but contain invisible characters
+    // are truly emptied, allowing removeBlankLines to correctly identify them.
+    cleanHiddenCharacters();
+    removeBlankLines();
+    convertSingleBulletItems();
+    Logger.log('Document Cleaned! All specified cleaning operations completed successfully on document ID: ' + DOCID);
+  } catch (e) {
+    Logger.log('Error during document cleaning: ' + e.message);
+  }
+}
+
+/**
+ * Iterates through the document (specified by DOCID) and removes any blank lines,
+ * specifically empty paragraphs and list items.
+ */
+function removeBlankLines() {
+  const doc = DocumentApp.openById(DOCID); // Open the document by ID
+  const body = doc.getBody();
+  const elementsToRemove = []; // Array to store elements to be removed
+
+  // First pass: Identify all blank paragraphs and list items
+  for (let i = 0; i < body.getNumChildren(); i++) {
+    const child = body.getChild(i);
+    const type = child.getType();
+
+    if (type === DocumentApp.ElementType.PARAGRAPH || type === DocumentApp.ElementType.LIST_ITEM) {
+      const element = (type === DocumentApp.ElementType.PARAGRAPH) ? child.asParagraph() : child.asListItem();
+      if (element.getText().trim() === '') {
+        elementsToRemove.push(element);
+        Logger.log('Identified blank ' + type + ' for removal: ' + element.getText().substring(0, Math.min(element.getText().length, 20)));
+      }
+    } else if (type === DocumentApp.ElementType.TABLE) {
+      const table = child.asTable();
+      for (let r = 0; r < table.getNumRows(); r++) {
+        const row = table.getRow(r);
+        for (let c = 0; c < row.getNumCells(); c++) {
+          const cell = row.getCell(c);
+          for (let k = 0; k < cell.getNumChildren(); k++) {
+            const cellChild = cell.getChild(k);
+            const cellChildType = cellChild.getType();
+            if (cellChildType === DocumentApp.ElementType.PARAGRAPH || cellChildType === DocumentApp.ElementType.LIST_ITEM) {
+              const cellElement = (cellChildType === DocumentApp.ElementType.PARAGRAPH) ? cellChild.asParagraph() : cellChild.asListItem();
+              if (cellElement.getText().trim() === '') {
+                // For elements within cells, we can generally remove them directly
+                // as the cell itself acts as a container, and the "last paragraph" rule applies to the document body/section.
+                cellElement.removeFromParent();
+                Logger.log('Removed blank ' + cellChildType + ' from table cell.');
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Second pass: Remove identified top-level blank elements
+  // Iterate backwards to ensure indices remain valid during removal
+  for (let i = elementsToRemove.length - 1; i >= 0; i--) {
+    const element = elementsToRemove[i];
+    try {
+      element.removeFromParent();
+      Logger.log('Successfully removed blank element.');
+    } catch (e) {
+      // If we hit the "Can't remove the last paragraph" error,
+      // it means this element is the only remaining paragraph-like element in its section.
+      // In this case, clear its text and ensure it's not truly empty.
+      if (e.message.includes("Can't remove the last paragraph in a document section.")) {
+        element.setText(' '); // Set to a single space
+        Logger.log('Caught "Can\'t remove the last paragraph" error. Cleared text of the element instead.');
+      } else {
+        // Re-throw other unexpected errors
+        throw e;
+      }
+    }
+  }
+
+  // Final check: After all removals, ensure the document body is not left entirely empty of text elements.
+  // If it is, append a single blank paragraph to satisfy the document structure requirements.
+  let hasAnyTextElement = false;
+  for (let i = 0; i < body.getNumChildren(); i++) {
+    const child = body.getChild(i);
+    const type = child.getType();
+    if (type === DocumentApp.ElementType.PARAGRAPH || type === DocumentApp.ElementType.LIST_ITEM) {
+      hasAnyTextElement = true;
+      break;
+    } else if (type === DocumentApp.ElementType.TABLE) {
+      const table = child.asTable();
+      for (let r = 0; r < table.getNumRows(); r++) {
+        const row = table.getRow(r);
+        for (let c = 0; c < row.getNumCells(); c++) {
+          const cell = row.getCell(c);
+          if (cell.getNumChildren() > 0) {
+            for (let k = 0; k < cell.getNumChildren(); k++) {
+              const cellChild = cell.getChild(k);
+              const cellChildType = cellChild.getType();
+              if (cellChildType === DocumentApp.ElementType.PARAGRAPH || cellChildType === DocumentApp.ElementType.LIST_ITEM) {
+                hasAnyTextElement = true;
+                break;
+              }
+            }
+          }
+          if (hasAnyTextElement) break;
+        }
+        if (hasAnyTextElement) break;
+      }
+    }
+    if (hasAnyTextElement) break;
+  }
+
+  if (!hasAnyTextElement) {
+    body.appendParagraph(' ');
+    Logger.log('Appended a blank paragraph to ensure document is not empty of text elements.');
+  }
+
+  Logger.log('Blank lines removal complete.');
+}
+
+
+/**
+ * Identifies list items that are the *only* item in their list and converts them
+ * back to a regular paragraph, removing the list formatting.
+ * Operates on the document specified by DOCID.
+ */
+function convertSingleBulletItems() {
+  const doc = DocumentApp.openById(DOCID); // Open the document by ID
+  const body = doc.getBody();
+  const numChildren = body.getNumChildren();
+  const elementsToRemove = []; // Store elements to remove after iteration
+
+  for (let i = 0; i < numChildren; i++) {
+    const child = body.getChild(i);
+
+    if (child.getType() === DocumentApp.ElementType.LIST_ITEM) {
+      const listItem = child.asListItem();
+      // Use logical OR to ensure text is at least a single space if truly empty after trimming
+      const listItemText = listItem.getText().trim() || ' ';
+      const listItemIndex = body.getChildIndex(listItem);
+
+      // Check if the previous element is NOT a list item of the same list ID
+      const isFirstInList = listItemIndex === 0 ||
+                            body.getChild(listItemIndex - 1).getType() !== DocumentApp.ElementType.LIST_ITEM ||
+                            body.getChild(listItemIndex - 1).asListItem().getListId() !== listItem.getListId();
+
+      // Check if the next element is NOT a list item of the same list ID
+      const isLastInList = listItemIndex === numChildren - 1 ||
+                           body.getChild(listItemIndex + 1).getType() !== DocumentApp.ElementType.LIST_ITEM ||
+                           body.getChild(listItemIndex + 1).asListItem().getListId() !== listItem.getListId();
+
+      // If it's both the first and last (meaning it's the only one)
+      if (isFirstInList && isLastInList) {
+        // Create a new paragraph with the same text and attributes
+        const newParagraph = body.insertParagraph(listItemIndex, listItemText);
+        // Copy attributes from the list item to the new paragraph
+        const attributes = listItem.getAttributes();
+        newParagraph.setAttributes(attributes);
+        elementsToRemove.push(listItem); // Mark the original list item for removal
+        Logger.log('Converted single bullet item to paragraph: ' + listItemText);
+      }
+    }
+  }
+
+  // Remove the marked list items in reverse order to avoid index issues
+  for (let i = elementsToRemove.length - 1; i >= 0; i--) {
+    elementsToRemove[i].removeFromParent();
+  }
+  Logger.log('Single bullet items conversion complete.');
+}
+
+/**
+ * Cleans up common hidden or non-printable characters that can appear
+ * from copy-pasting content, such as non-breaking spaces, zero-width spaces,
+ * and other control characters.
+ * Operates on the document specified by DOCID.
+ */
+function cleanHiddenCharacters() {
+  const doc = DocumentApp.openById(DOCID); // Open the document by ID
+  const body = doc.getBody();
+  const numChildren = body.getNumChildren();
+
+  // Regular expression to match common hidden characters:
+  // \u00A0: Non-breaking space
+  // \u200B: Zero-width space
+  // \uFEFF: Zero-width no-break space (Byte Order Mark)
+  // \u00AD: Soft hyphen
+  // [\u0000-\u0008\u000B-\u001F\u007F-\u009F]: ASCII and C1 control characters (excluding tab \t and newline \n)
+  const hiddenCharRegex = new RegExp(
+    '[\u00A0\u200B\uFEFF\u00AD\u0000-\u0008\u000B-\u001F\u007F-\u009F]', 'g'
+  );
+
+  for (let i = 0; i < numChildren; i++) {
+    const child = body.getChild(i);
+    const type = child.getType(); // Get the type of the child element
+
+    // Only process elements that contain text
+    if (type === DocumentApp.ElementType.PARAGRAPH ||
+        type === DocumentApp.ElementType.LIST_ITEM) {
+      let originalText = child.getText();
+      let cleanedText = originalText.replace(hiddenCharRegex, ' ').replace(/\s{2,}/g, ' ').trim();
+
+      if (originalText !== cleanedText) {
+        child.setText(cleanedText);
+        Logger.log('Cleaned hidden characters in element: ' + originalText.substring(0, Math.min(originalText.length, 50)) + '...');
+      }
+    } else if (type === DocumentApp.ElementType.TABLE) {
+      const table = child.asTable();
+      for (let r = 0; r < table.getNumRows(); r++) {
+        const row = table.getRow(r);
+        for (let c = 0; c < row.getNumCells(); c++) {
+          const cell = row.getCell(c);
+          // Iterate through children of the cell (which can be Paragraphs, ListItems, etc.)
+          const cellNumChildren = cell.getNumChildren();
+          for (let k = 0; k < cellNumChildren; k++) {
+            const cellChild = cell.getChild(k);
+            const cellChildType = cellChild.getType();
+            if (cellChildType === DocumentApp.ElementType.PARAGRAPH || cellChildType === DocumentApp.ElementType.LIST_ITEM) {
+              let cellOriginalText = cellChild.getText();
+              let cellCleanedText = cellOriginalText.replace(hiddenCharRegex, ' ').replace(/\s{2,}/g, ' ').trim();
+              if (cellOriginalText !== cellCleanedText) {
+                cellChild.setText(cellCleanedText);
+                Logger.log('Cleaned hidden characters in table cell child: ' + cellOriginalText.substring(0, Math.min(cellOriginalText.length, 50)) + '...');
+              }
+            }
+          }
+        }
+      }
+    }
+    // Other element types are skipped as they don't typically contain text for cleaning.
+  }
+  Logger.log('Hidden characters cleaning complete.');
+}
