@@ -1,0 +1,12 @@
+function removeCiteReferences() {
+  var body = DocumentApp.getActiveDocument().getBody();
+  // This pattern matches [cite: 123], [cite: 88], etc.
+  var pattern = /\[cite:\s*\d+\]/g;
+  
+  // Get all the text in the body
+  var text = body.getText();
+  // Replace all occurrences of the pattern with an empty string
+  var cleanedText = text.replace(pattern, '');
+  // Set the cleaned text back into the document
+  body.setText(cleanedText);
+}
