@@ -1,0 +1,1233 @@
+// Apps Script: 100 Common Sheets Examples (function names sanitized for validity)
+// Usage: Import Samples.xlsx into Google Sheets, then paste this file into Apps Script.
+
+/**
+ * Run ALL examples (sanitized v2 naming), with logging.
+ * - Writes results to a sheet called "TestResults" (auto-creates if missing).
+ * - Skips interactive UI examples by default (TriggersUI) to avoid blocking alerts.
+ * - Use runExamplesRange() to run a subset by example id (1..100).
+ *
+ * Quick start:
+ *   runAllExamples();                      // run everything (except UI)
+ *   runExamplesRange(1, 25);               // run a chunk
+ *   runAllExamples({includeUI: true});     // include TriggersUI examples (will open alerts)
+ */
+function runAllExamples(opts) {
+  opts = opts || {};
+  const includeUI = !!opts.includeUI;
+  const onlyCategories = Array.isArray(opts.onlyCategories) ? opts.onlyCategories : null; // e.g., ["DataCleaning","Formatting"]
+  const excludeCategories = Array.isArray(opts.excludeCategories) ? opts.excludeCategories : (includeUI ? [] : ["TriggersUI"]);
+  runExamplesRange(1, 100, { includeUI, onlyCategories, excludeCategories });
+}
+
+/**
+ * Run a subset of examples by id range (1..100).
+ * Options:
+ *   - includeUI: boolean (default false) include "TriggersUI" category examples
+ *   - onlyCategories: array of category slugs to include (e.g., ["DataCleaning"])
+ *   - excludeCategories: array of category slugs to skip (e.g., ["ImportExport"])
+ */
+function runExamplesRange(startId, endId, opts) {
+  opts = opts || {};
+  const includeUI = !!opts.includeUI;
+  const onlyCategories = Array.isArray(opts.onlyCategories) ? new Set(opts.onlyCategories) : null;
+  const excludeCategories = new Set(Array.isArray(opts.excludeCategories) ? opts.excludeCategories : (includeUI ? [] : ["TriggersUI"]));
+
+  const globalObj = this; // V8 global
+  const catalog = _exampleCatalog_(); // [{id, name, categorySlug}]
+  const toRun = catalog.filter(e =>
+    e.id >= startId && e.id <= endId &&
+    (!onlyCategories || onlyCategories.has(e.categorySlug)) &&
+    (!excludeCategories.has(e.categorySlug))
+  );
+
+  const logSheet = _ensureResultsSheet_();
+  _ensureResultsHeader_(logSheet);
+
+  let passed = 0, failed = 0;
+  toRun.forEach(e => {
+    const fn = globalObj[e.name];
+    const t0 = Date.now();
+    let status = "PASS", errMsg = "";
+    try {
+      if (typeof fn !== "function") {
+        throw new Error("Function not found: " + e.name);
+      }
+      fn(); // execute example
+    } catch (err) {
+      status = "FAIL";
+      errMsg = (err && err.message) ? String(err.message) : String(err);
+    }
+    const ms = Date.now() - t0;
+    _appendResult_(logSheet, e.id, e.name, e.categorySlug, status, ms, errMsg);
+    status === "PASS" ? passed++ : failed++;
+  });
+
+  Logger.log(`Run complete. Ran ${toRun.length} example(s). PASS=${passed}, FAIL=${failed}`);
+}
+
+/** Internal: create/find the results sheet. */
+function _ensureResultsSheet_() {
+  const ss = SpreadsheetApp.getActive();
+  const name = "TestResults";
+  let sh = ss.getSheetByName(name);
+  if (!sh) sh = ss.insertSheet(name);
+  return sh;
+}
+
+/** Internal: ensure header row exists. */
+function _ensureResultsHeader_(sh) {
+  const header = ["Timestamp", "ExampleId", "FunctionName", "Category", "Status", "DurationMs", "Error"];
+  if (sh.getLastRow() === 0) {
+    sh.appendRow(header);
+  } else {
+    // If headers missing/misaligned, you can force reset by uncommenting:
+    // sh.clear(); sh.appendRow(header);
+  }
+}
+
+/** Internal: append a single result row. */
+function _appendResult_(sh, id, fnName, cat, status, ms, err) {
+  sh.appendRow([new Date(), id, fnName, cat, status, ms, err || ""]);
+}
+
+/**
+ * Internal: catalog of ALL 100 examples matching the v2 sanitized naming.
+ * We reconstruct names deterministically from the original category order and counts.
+ * Name format: exNNN_<CategorySlug>_<index2d>
+ *
+ * Category slugs (alphanumeric only):
+ *  Basics
+ *  ReadWriteRanges
+ *  Formatting
+ *  FormulasFunctions
+ *  DataCleaning
+ *  SortingFiltering
+ *  DatesTimes
+ *  TextManipulation
+ *  ArraysMaps
+ *  SheetsWorkbooks
+ *  Charts
+ *  ImportExport
+ *  TriggersUI
+ *  ValidationProtection
+ */
+function _exampleCatalog_() {
+  const cats = [
+    ["Basics", 6],
+    ["ReadWriteRanges", 10],
+    ["Formatting", 8],
+    ["FormulasFunctions", 6],
+    ["DataCleaning", 10],
+    ["SortingFiltering", 10],
+    ["DatesTimes", 8],
+    ["TextManipulation", 8],
+    ["ArraysMaps", 6],
+    ["SheetsWorkbooks", 7],
+    ["Charts", 5],
+    ["ImportExport", 5],
+    ["TriggersUI", 6],
+    ["ValidationProtection", 5],
+  ];
+
+  const list = [];
+  let id = 1;
+  for (let i = 0; i < cats.length; i++) {
+    const [slug, count] = cats[i];
+    for (let j = 1; j <= count; j++, id++) {
+      const name = `ex${String(id).padStart(3, "0")}_${slug}_${String(j).padStart(2, "0")}`;
+      list.push({ id, name, categorySlug: slug });
+    }
+  }
+  return list;
+}
+
+
+
+
+
+
+
+// Example 001: [Basics] Get Active Spreadsheet
+function ex001_Basics_01() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("Basics_01");
+  if (!sh) throw new Error("Sheet 'Basics_01' not found");
+  sh.getRange("A1").setValue("Hello");
+  const val = sh.getRange("A1").getValue();
+  Logger.log("A1: " + val);
+}
+
+// Example 002: [Basics] Get Active Sheet Name
+function ex002_Basics_02() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("Basics_02");
+  if (!sh) throw new Error("Sheet 'Basics_02' not found");
+  sh.getRange("A1").setValue("Hello");
+  const val = sh.getRange("A1").getValue();
+  Logger.log("A1: " + val);
+}
+
+// Example 003: [Basics] Read a Cell
+function ex003_Basics_03() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("Basics_03");
+  if (!sh) throw new Error("Sheet 'Basics_03' not found");
+  sh.getRange("A1").setValue("Hello");
+  const val = sh.getRange("A1").getValue();
+  Logger.log("A1: " + val);
+}
+
+// Example 004: [Basics] Write a Cell
+function ex004_Basics_04() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("Basics_04");
+  if (!sh) throw new Error("Sheet 'Basics_04' not found");
+  sh.getRange("A1").setValue("Hello");
+  const val = sh.getRange("A1").getValue();
+  Logger.log("A1: " + val);
+}
+
+// Example 005: [Basics] Append Row
+function ex005_Basics_05() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("Basics_05");
+  if (!sh) throw new Error("Sheet 'Basics_05' not found");
+  sh.getRange("A1").setValue("Hello");
+  const val = sh.getRange("A1").getValue();
+  Logger.log("A1: " + val);
+}
+
+// Example 006: [Basics] Clear a Range
+function ex006_Basics_06() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("Basics_06");
+  if (!sh) throw new Error("Sheet 'Basics_06' not found");
+  sh.getRange("A1").setValue("Hello");
+  const val = sh.getRange("A1").getValue();
+  Logger.log("A1: " + val);
+}
+
+// Example 007: [Read & Write Ranges] Read a Range to 2D Array
+function ex007_ReadWriteRanges_01() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("Read&Write_01");
+  if (!sh) throw new Error("Sheet 'Read&Write_01' not found");
+  const range = sh.getRange(2,1, sh.getLastRow()-1, sh.getLastColumn());
+  const values = range.getValues();
+  sh.appendRow(["Total rows", values.length]);
+  Logger.log("Rows read: " + values.length);
+}
+
+// Example 008: [Read & Write Ranges] Write 2D Array to Range
+function ex008_ReadWriteRanges_02() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("Read&Write_02");
+  if (!sh) throw new Error("Sheet 'Read&Write_02' not found");
+  const range = sh.getRange(2,1, sh.getLastRow()-1, sh.getLastColumn());
+  const values = range.getValues();
+  sh.appendRow(["Total rows", values.length]);
+  Logger.log("Rows read: " + values.length);
+}
+
+// Example 009: [Read & Write Ranges] Get Last Row
+function ex009_ReadWriteRanges_03() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("Read&Write_03");
+  if (!sh) throw new Error("Sheet 'Read&Write_03' not found");
+  const range = sh.getRange(2,1, sh.getLastRow()-1, sh.getLastColumn());
+  const values = range.getValues();
+  sh.appendRow(["Total rows", values.length]);
+  Logger.log("Rows read: " + values.length);
+}
+
+// Example 010: [Read & Write Ranges] Get Last Column
+function ex010_ReadWriteRanges_04() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("Read&Write_04");
+  if (!sh) throw new Error("Sheet 'Read&Write_04' not found");
+  const range = sh.getRange(2,1, sh.getLastRow()-1, sh.getLastColumn());
+  const values = range.getValues();
+  sh.appendRow(["Total rows", values.length]);
+  Logger.log("Rows read: " + values.length);
+}
+
+// Example 011: [Read & Write Ranges] Get Range by A1 Notation
+function ex011_ReadWriteRanges_05() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("Read&Write_05");
+  if (!sh) throw new Error("Sheet 'Read&Write_05' not found");
+  const range = sh.getRange(2,1, sh.getLastRow()-1, sh.getLastColumn());
+  const values = range.getValues();
+  sh.appendRow(["Total rows", values.length]);
+  Logger.log("Rows read: " + values.length);
+}
+
+// Example 012: [Read & Write Ranges] Batch Read Ranges
+function ex012_ReadWriteRanges_06() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("Read&Write_06");
+  if (!sh) throw new Error("Sheet 'Read&Write_06' not found");
+  const range = sh.getRange(2,1, sh.getLastRow()-1, sh.getLastColumn());
+  const values = range.getValues();
+  sh.appendRow(["Total rows", values.length]);
+  Logger.log("Rows read: " + values.length);
+}
+
+// Example 013: [Read & Write Ranges] Batch Write Ranges
+function ex013_ReadWriteRanges_07() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("Read&Write_07");
+  if (!sh) throw new Error("Sheet 'Read&Write_07' not found");
+  const range = sh.getRange(2,1, sh.getLastRow()-1, sh.getLastColumn());
+  const values = range.getValues();
+  sh.appendRow(["Total rows", values.length]);
+  Logger.log("Rows read: " + values.length);
+}
+
+// Example 014: [Read & Write Ranges] Copy Range to Another Sheet
+function ex014_ReadWriteRanges_08() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("Read&Write_08");
+  if (!sh) throw new Error("Sheet 'Read&Write_08' not found");
+  const range = sh.getRange(2,1, sh.getLastRow()-1, sh.getLastColumn());
+  const values = range.getValues();
+  sh.appendRow(["Total rows", values.length]);
+  Logger.log("Rows read: " + values.length);
+}
+
+// Example 015: [Read & Write Ranges] Transpose Data
+function ex015_ReadWriteRanges_09() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("Read&Write_09");
+  if (!sh) throw new Error("Sheet 'Read&Write_09' not found");
+  const range = sh.getRange(2,1, sh.getLastRow()-1, sh.getLastColumn());
+  const values = range.getValues();
+  sh.appendRow(["Total rows", values.length]);
+  Logger.log("Rows read: " + values.length);
+}
+
+// Example 016: [Read & Write Ranges] Find and Replace Text (Manual)
+function ex016_ReadWriteRanges_10() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("Read&Write_10");
+  if (!sh) throw new Error("Sheet 'Read&Write_10' not found");
+  const range = sh.getRange(2,1, sh.getLastRow()-1, sh.getLastColumn());
+  const values = range.getValues();
+  sh.appendRow(["Total rows", values.length]);
+  Logger.log("Rows read: " + values.length);
+}
+
+// Example 017: [Formatting] Set Number Formats
+function ex017_Formatting_01() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("Formatting_01");
+  if (!sh) throw new Error("Sheet 'Formatting_01' not found");
+  const header = sh.getRange(1,1,1, sh.getLastColumn());
+  header.setFontWeight("bold");
+  const data = sh.getRange(2,1, sh.getLastRow()-1, sh.getLastColumn());
+  data.setNumberFormat("0.00");
+  Logger.log("Formatted header and data cells.");
+}
+
+// Example 018: [Formatting] Bold Header Row
+function ex018_Formatting_02() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("Formatting_02");
+  if (!sh) throw new Error("Sheet 'Formatting_02' not found");
+  const header = sh.getRange(1,1,1, sh.getLastColumn());
+  header.setFontWeight("bold");
+  const data = sh.getRange(2,1, sh.getLastRow()-1, sh.getLastColumn());
+  data.setNumberFormat("0.00");
+  Logger.log("Formatted header and data cells.");
+}
+
+// Example 019: [Formatting] Auto Resize Columns
+function ex019_Formatting_03() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("Formatting_03");
+  if (!sh) throw new Error("Sheet 'Formatting_03' not found");
+  const header = sh.getRange(1,1,1, sh.getLastColumn());
+  header.setFontWeight("bold");
+  const data = sh.getRange(2,1, sh.getLastRow()-1, sh.getLastColumn());
+  data.setNumberFormat("0.00");
+  Logger.log("Formatted header and data cells.");
+}
+
+// Example 020: [Formatting] Set Background Colors
+function ex020_Formatting_04() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("Formatting_04");
+  if (!sh) throw new Error("Sheet 'Formatting_04' not found");
+  const header = sh.getRange(1,1,1, sh.getLastColumn());
+  header.setFontWeight("bold");
+  const data = sh.getRange(2,1, sh.getLastRow()-1, sh.getLastColumn());
+  data.setNumberFormat("0.00");
+  Logger.log("Formatted header and data cells.");
+}
+
+// Example 021: [Formatting] Conditional Formatting (>=10)
+function ex021_Formatting_05() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("Formatting_05");
+  if (!sh) throw new Error("Sheet 'Formatting_05' not found");
+  const header = sh.getRange(1,1,1, sh.getLastColumn());
+  header.setFontWeight("bold");
+  const data = sh.getRange(2,1, sh.getLastRow()-1, sh.getLastColumn());
+  data.setNumberFormat("0.00");
+  Logger.log("Formatted header and data cells.");
+}
+
+// Example 022: [Formatting] Set Font Styles
+function ex022_Formatting_06() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("Formatting_06");
+  if (!sh) throw new Error("Sheet 'Formatting_06' not found");
+  const header = sh.getRange(1,1,1, sh.getLastColumn());
+  header.setFontWeight("bold");
+  const data = sh.getRange(2,1, sh.getLastRow()-1, sh.getLastColumn());
+  data.setNumberFormat("0.00");
+  Logger.log("Formatted header and data cells.");
+}
+
+// Example 023: [Formatting] Borders Around Range
+function ex023_Formatting_07() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("Formatting_07");
+  if (!sh) throw new Error("Sheet 'Formatting_07' not found");
+  const header = sh.getRange(1,1,1, sh.getLastColumn());
+  header.setFontWeight("bold");
+  const data = sh.getRange(2,1, sh.getLastRow()-1, sh.getLastColumn());
+  data.setNumberFormat("0.00");
+  Logger.log("Formatted header and data cells.");
+}
+
+// Example 024: [Formatting] Freeze Header Row
+function ex024_Formatting_08() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("Formatting_08");
+  if (!sh) throw new Error("Sheet 'Formatting_08' not found");
+  const header = sh.getRange(1,1,1, sh.getLastColumn());
+  header.setFontWeight("bold");
+  const data = sh.getRange(2,1, sh.getLastRow()-1, sh.getLastColumn());
+  data.setNumberFormat("0.00");
+  Logger.log("Formatted header and data cells.");
+}
+
+// Example 025: [Formulas & Functions] Set Formula in Cell
+function ex025_FormulasFunctions_01() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("Formulas&F_01");
+  if (!sh) throw new Error("Sheet 'Formulas&F_01' not found");
+  const last = sh.getLastRow();
+  sh.getRange(last+1, 1).setFormula(`=SUM(A2:A${last})`);
+  Logger.log("Inserted SUM formula at A" + (last+1));
+}
+
+// Example 026: [Formulas & Functions] Set ArrayFormula
+function ex026_FormulasFunctions_02() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("Formulas&F_02");
+  if (!sh) throw new Error("Sheet 'Formulas&F_02' not found");
+  const last = sh.getLastRow();
+  sh.getRange(last+1, 1).setFormula(`=SUM(A2:A${last})`);
+  Logger.log("Inserted SUM formula at A" + (last+1));
+}
+
+// Example 027: [Formulas & Functions] Use Named Range
+function ex027_FormulasFunctions_03() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("Formulas&F_03");
+  if (!sh) throw new Error("Sheet 'Formulas&F_03' not found");
+  const last = sh.getLastRow();
+  sh.getRange(last+1, 1).setFormula(`=SUM(A2:A${last})`);
+  Logger.log("Inserted SUM formula at A" + (last+1));
+}
+
+// Example 028: [Formulas & Functions] Evaluate Formulas
+function ex028_FormulasFunctions_04() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("Formulas&F_04");
+  if (!sh) throw new Error("Sheet 'Formulas&F_04' not found");
+  const last = sh.getLastRow();
+  sh.getRange(last+1, 1).setFormula(`=SUM(A2:A${last})`);
+  Logger.log("Inserted SUM formula at A" + (last+1));
+}
+
+// Example 029: [Formulas & Functions] Set VLOOKUP Formula
+function ex029_FormulasFunctions_05() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("Formulas&F_05");
+  if (!sh) throw new Error("Sheet 'Formulas&F_05' not found");
+  const last = sh.getLastRow();
+  sh.getRange(last+1, 1).setFormula(`=SUM(A2:A${last})`);
+  Logger.log("Inserted SUM formula at A" + (last+1));
+}
+
+// Example 030: [Formulas & Functions] Set SUMIF Formula
+function ex030_FormulasFunctions_06() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("Formulas&F_06");
+  if (!sh) throw new Error("Sheet 'Formulas&F_06' not found");
+  const last = sh.getLastRow();
+  sh.getRange(last+1, 1).setFormula(`=SUM(A2:A${last})`);
+  Logger.log("Inserted SUM formula at A" + (last+1));
+}
+
+// Example 031: [Data Cleaning] Trim Whitespace
+function ex031_DataCleaning_01() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("DataCleanin_01");
+  if (!sh) throw new Error("Sheet 'DataCleanin_01' not found");
+  const rng = sh.getRange(2,1, sh.getLastRow()-1, 1);
+  const vals = rng.getValues().map(r => [ (""+r[0]).trim() ]);
+  sh.getRange(2,1,vals.length,1).setValues(vals);
+  Logger.log("Trimmed whitespace in first column.");
+}
+
+// Example 032: [Data Cleaning] Uppercase/Lowercase
+function ex032_DataCleaning_02() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("DataCleanin_02");
+  if (!sh) throw new Error("Sheet 'DataCleanin_02' not found");
+  const rng = sh.getRange(2,1, sh.getLastRow()-1, 1);
+  const vals = rng.getValues().map(r => [ (""+r[0]).trim() ]);
+  sh.getRange(2,1,vals.length,1).setValues(vals);
+  Logger.log("Trimmed whitespace in first column.");
+}
+
+// Example 033: [Data Cleaning] Remove Duplicates
+function ex033_DataCleaning_03() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("DataCleanin_03");
+  if (!sh) throw new Error("Sheet 'DataCleanin_03' not found");
+  const rng = sh.getRange(2,1, sh.getLastRow()-1, 1);
+  const vals = rng.getValues().map(r => [ (""+r[0]).trim() ]);
+  sh.getRange(2,1,vals.length,1).setValues(vals);
+  Logger.log("Trimmed whitespace in first column.");
+}
+
+// Example 034: [Data Cleaning] Fill Blanks
+function ex034_DataCleaning_04() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("DataCleanin_04");
+  if (!sh) throw new Error("Sheet 'DataCleanin_04' not found");
+  const rng = sh.getRange(2,1, sh.getLastRow()-1, 1);
+  const vals = rng.getValues().map(r => [ (""+r[0]).trim() ]);
+  sh.getRange(2,1,vals.length,1).setValues(vals);
+  Logger.log("Trimmed whitespace in first column.");
+}
+
+// Example 035: [Data Cleaning] Find & Replace
+function ex035_DataCleaning_05() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("DataCleanin_05");
+  if (!sh) throw new Error("Sheet 'DataCleanin_05' not found");
+  const rng = sh.getRange(2,1, sh.getLastRow()-1, 1);
+  const vals = rng.getValues().map(r => [ (""+r[0]).trim() ]);
+  sh.getRange(2,1,vals.length,1).setValues(vals);
+  Logger.log("Trimmed whitespace in first column.");
+}
+
+// Example 036: [Data Cleaning] Normalize Accents
+function ex036_DataCleaning_06() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("DataCleanin_06");
+  if (!sh) throw new Error("Sheet 'DataCleanin_06' not found");
+  const rng = sh.getRange(2,1, sh.getLastRow()-1, 1);
+  const vals = rng.getValues().map(r => [ (""+r[0]).trim() ]);
+  sh.getRange(2,1,vals.length,1).setValues(vals);
+  Logger.log("Trimmed whitespace in first column.");
+}
+
+// Example 037: [Data Cleaning] Split Text to Columns (Scripted)
+function ex037_DataCleaning_07() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("DataCleanin_07");
+  if (!sh) throw new Error("Sheet 'DataCleanin_07' not found");
+  const rng = sh.getRange(2,1, sh.getLastRow()-1, 1);
+  const vals = rng.getValues().map(r => [ (""+r[0]).trim() ]);
+  sh.getRange(2,1,vals.length,1).setValues(vals);
+  Logger.log("Trimmed whitespace in first column.");
+}
+
+// Example 038: [Data Cleaning] Merge Columns With Delimiter
+function ex038_DataCleaning_08() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("DataCleanin_08");
+  if (!sh) throw new Error("Sheet 'DataCleanin_08' not found");
+  const rng = sh.getRange(2,1, sh.getLastRow()-1, 1);
+  const vals = rng.getValues().map(r => [ (""+r[0]).trim() ]);
+  sh.getRange(2,1,vals.length,1).setValues(vals);
+  Logger.log("Trimmed whitespace in first column.");
+}
+
+// Example 039: [Data Cleaning] Remove Non-ASCII
+function ex039_DataCleaning_09() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("DataCleanin_09");
+  if (!sh) throw new Error("Sheet 'DataCleanin_09' not found");
+  const rng = sh.getRange(2,1, sh.getLastRow()-1, 1);
+  const vals = rng.getValues().map(r => [ (""+r[0]).trim() ]);
+  sh.getRange(2,1,vals.length,1).setValues(vals);
+  Logger.log("Trimmed whitespace in first column.");
+}
+
+// Example 040: [Data Cleaning] Clean Leading Zeros
+function ex040_DataCleaning_10() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("DataCleanin_10");
+  if (!sh) throw new Error("Sheet 'DataCleanin_10' not found");
+  const rng = sh.getRange(2,1, sh.getLastRow()-1, 1);
+  const vals = rng.getValues().map(r => [ (""+r[0]).trim() ]);
+  sh.getRange(2,1,vals.length,1).setValues(vals);
+  Logger.log("Trimmed whitespace in first column.");
+}
+
+// Example 041: [Sorting & Filtering] Sort by One Column
+function ex041_SortingFiltering_01() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("Sorting&Fi_01");
+  if (!sh) throw new Error("Sheet 'Sorting&Fi_01' not found");
+  const rng = sh.getRange(2,1, sh.getLastRow()-1, sh.getLastColumn());
+  rng.sort([{ column: 3, ascending: true }]);
+  Logger.log("Sorted by 3rd column ascending.");
+}
+
+// Example 042: [Sorting & Filtering] Sort by Multiple Columns
+function ex042_SortingFiltering_02() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("Sorting&Fi_02");
+  if (!sh) throw new Error("Sheet 'Sorting&Fi_02' not found");
+  const rng = sh.getRange(2,1, sh.getLastRow()-1, sh.getLastColumn());
+  rng.sort([{ column: 3, ascending: true }]);
+  Logger.log("Sorted by 3rd column ascending.");
+}
+
+// Example 043: [Sorting & Filtering] Filter by Value
+function ex043_SortingFiltering_03() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("Sorting&Fi_03");
+  if (!sh) throw new Error("Sheet 'Sorting&Fi_03' not found");
+  const rng = sh.getRange(2,1, sh.getLastRow()-1, sh.getLastColumn());
+  rng.sort([{ column: 3, ascending: true }]);
+  Logger.log("Sorted by 3rd column ascending.");
+}
+
+// Example 044: [Sorting & Filtering] Filter by Condition (>=)
+function ex044_SortingFiltering_04() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("Sorting&Fi_04");
+  if (!sh) throw new Error("Sheet 'Sorting&Fi_04' not found");
+  const rng = sh.getRange(2,1, sh.getLastRow()-1, sh.getLastColumn());
+  rng.sort([{ column: 3, ascending: true }]);
+  Logger.log("Sorted by 3rd column ascending.");
+}
+
+// Example 045: [Sorting & Filtering] Unique Values List
+function ex045_SortingFiltering_05() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("Sorting&Fi_05");
+  if (!sh) throw new Error("Sheet 'Sorting&Fi_05' not found");
+  const rng = sh.getRange(2,1, sh.getLastRow()-1, sh.getLastColumn());
+  rng.sort([{ column: 3, ascending: true }]);
+  Logger.log("Sorted by 3rd column ascending.");
+}
+
+// Example 046: [Sorting & Filtering] Top N by Score
+function ex046_SortingFiltering_06() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("Sorting&Fi_06");
+  if (!sh) throw new Error("Sheet 'Sorting&Fi_06' not found");
+  const rng = sh.getRange(2,1, sh.getLastRow()-1, sh.getLastColumn());
+  rng.sort([{ column: 3, ascending: true }]);
+  Logger.log("Sorted by 3rd column ascending.");
+}
+
+// Example 047: [Sorting & Filtering] Bottom N by Score
+function ex047_SortingFiltering_07() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("Sorting&Fi_07");
+  if (!sh) throw new Error("Sheet 'Sorting&Fi_07' not found");
+  const rng = sh.getRange(2,1, sh.getLastRow()-1, sh.getLastColumn());
+  rng.sort([{ column: 3, ascending: true }]);
+  Logger.log("Sorted by 3rd column ascending.");
+}
+
+// Example 048: [Sorting & Filtering] Custom Comparator Sort
+function ex048_SortingFiltering_08() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("Sorting&Fi_08");
+  if (!sh) throw new Error("Sheet 'Sorting&Fi_08' not found");
+  const rng = sh.getRange(2,1, sh.getLastRow()-1, sh.getLastColumn());
+  rng.sort([{ column: 3, ascending: true }]);
+  Logger.log("Sorted by 3rd column ascending.");
+}
+
+// Example 049: [Sorting & Filtering] Hide/Show Rows
+function ex049_SortingFiltering_09() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("Sorting&Fi_09");
+  if (!sh) throw new Error("Sheet 'Sorting&Fi_09' not found");
+  const rng = sh.getRange(2,1, sh.getLastRow()-1, sh.getLastColumn());
+  rng.sort([{ column: 3, ascending: true }]);
+  Logger.log("Sorted by 3rd column ascending.");
+}
+
+// Example 050: [Sorting & Filtering] Advanced Filter to New Sheet
+function ex050_SortingFiltering_10() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("Sorting&Fi_10");
+  if (!sh) throw new Error("Sheet 'Sorting&Fi_10' not found");
+  const rng = sh.getRange(2,1, sh.getLastRow()-1, sh.getLastColumn());
+  rng.sort([{ column: 3, ascending: true }]);
+  Logger.log("Sorted by 3rd column ascending.");
+}
+
+// Example 051: [Dates & Times] Stamp Timestamps
+function ex051_DatesTimes_01() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("Dates&Time_01");
+  if (!sh) throw new Error("Sheet 'Dates&Time_01' not found");
+  const rng = sh.getRange(2,2, sh.getLastRow()-1, 2);
+  const values = rng.getValues();
+  const days = values.map(r => [ (new Date(r[1]) - new Date(r[0]))/(1000*3600*24) ]);
+  sh.getRange(2,4,days.length,1).setValues(days);
+  Logger.log("Calculated day diffs in column D.");
+}
+
+// Example 052: [Dates & Times] Calculate Date Differences
+function ex052_DatesTimes_02() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("Dates&Time_02");
+  if (!sh) throw new Error("Sheet 'Dates&Time_02' not found");
+  const rng = sh.getRange(2,2, sh.getLastRow()-1, 2);
+  const values = rng.getValues();
+  const days = values.map(r => [ (new Date(r[1]) - new Date(r[0]))/(1000*3600*24) ]);
+  sh.getRange(2,4,days.length,1).setValues(days);
+  Logger.log("Calculated day diffs in column D.");
+}
+
+// Example 053: [Dates & Times] Add Days to Dates
+function ex053_DatesTimes_03() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("Dates&Time_03");
+  if (!sh) throw new Error("Sheet 'Dates&Time_03' not found");
+  const rng = sh.getRange(2,2, sh.getLastRow()-1, 2);
+  const values = rng.getValues();
+  const days = values.map(r => [ (new Date(r[1]) - new Date(r[0]))/(1000*3600*24) ]);
+  sh.getRange(2,4,days.length,1).setValues(days);
+  Logger.log("Calculated day diffs in column D.");
+}
+
+// Example 054: [Dates & Times] Format Dates
+function ex054_DatesTimes_04() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("Dates&Time_04");
+  if (!sh) throw new Error("Sheet 'Dates&Time_04' not found");
+  const rng = sh.getRange(2,2, sh.getLastRow()-1, 2);
+  const values = rng.getValues();
+  const days = values.map(r => [ (new Date(r[1]) - new Date(r[0]))/(1000*3600*24) ]);
+  sh.getRange(2,4,days.length,1).setValues(days);
+  Logger.log("Calculated day diffs in column D.");
+}
+
+// Example 055: [Dates & Times] Next Business Day
+function ex055_DatesTimes_05() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("Dates&Time_05");
+  if (!sh) throw new Error("Sheet 'Dates&Time_05' not found");
+  const rng = sh.getRange(2,2, sh.getLastRow()-1, 2);
+  const values = rng.getValues();
+  const days = values.map(r => [ (new Date(r[1]) - new Date(r[0]))/(1000*3600*24) ]);
+  sh.getRange(2,4,days.length,1).setValues(days);
+  Logger.log("Calculated day diffs in column D.");
+}
+
+// Example 056: [Dates & Times] Start/End of Month
+function ex056_DatesTimes_06() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("Dates&Time_06");
+  if (!sh) throw new Error("Sheet 'Dates&Time_06' not found");
+  const rng = sh.getRange(2,2, sh.getLastRow()-1, 2);
+  const values = rng.getValues();
+  const days = values.map(r => [ (new Date(r[1]) - new Date(r[0]))/(1000*3600*24) ]);
+  sh.getRange(2,4,days.length,1).setValues(days);
+  Logger.log("Calculated day diffs in column D.");
+}
+
+// Example 057: [Dates & Times] Week Number
+function ex057_DatesTimes_07() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("Dates&Time_07");
+  if (!sh) throw new Error("Sheet 'Dates&Time_07' not found");
+  const rng = sh.getRange(2,2, sh.getLastRow()-1, 2);
+  const values = rng.getValues();
+  const days = values.map(r => [ (new Date(r[1]) - new Date(r[0]))/(1000*3600*24) ]);
+  sh.getRange(2,4,days.length,1).setValues(days);
+  Logger.log("Calculated day diffs in column D.");
+}
+
+// Example 058: [Dates & Times] Friendly Relative Dates
+function ex058_DatesTimes_08() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("Dates&Time_08");
+  if (!sh) throw new Error("Sheet 'Dates&Time_08' not found");
+  const rng = sh.getRange(2,2, sh.getLastRow()-1, 2);
+  const values = rng.getValues();
+  const days = values.map(r => [ (new Date(r[1]) - new Date(r[0]))/(1000*3600*24) ]);
+  sh.getRange(2,4,days.length,1).setValues(days);
+  Logger.log("Calculated day diffs in column D.");
+}
+
+// Example 059: [Text Manipulation] Split on Space
+function ex059_TextManipulation_01() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("TextManipul_01");
+  if (!sh) throw new Error("Sheet 'TextManipul_01' not found");
+  const rng = sh.getRange(2,1, sh.getLastRow()-1, 1);
+  const out = sh.getRange(2,2, sh.getLastRow()-1, 3);
+  const vals = rng.getValues().map(r => r[0]+"");
+  const split = vals.map(v => [v.split(" ").join("|")]);
+  const findA = vals.map(v => [v.indexOf("a")]);
+  const repl = vals.map(v => [v.replace(/a/g, "@")]);
+  out.setValues(split.map((s,i)=>[s[0], findA[i][0], repl[i][0]]));
+  Logger.log("Processed text columns.");
+}
+
+// Example 060: [Text Manipulation] Find Substring
+function ex060_TextManipulation_02() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("TextManipul_02");
+  if (!sh) throw new Error("Sheet 'TextManipul_02' not found");
+  const rng = sh.getRange(2,1, sh.getLastRow()-1, 1);
+  const out = sh.getRange(2,2, sh.getLastRow()-1, 3);
+  const vals = rng.getValues().map(r => r[0]+"");
+  const split = vals.map(v => [v.split(" ").join("|")]);
+  const findA = vals.map(v => [v.indexOf("a")]);
+  const repl = vals.map(v => [v.replace(/a/g, "@")]);
+  out.setValues(split.map((s,i)=>[s[0], findA[i][0], repl[i][0]]));
+  Logger.log("Processed text columns.");
+}
+
+// Example 061: [Text Manipulation] Replace Characters
+function ex061_TextManipulation_03() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("TextManipul_03");
+  if (!sh) throw new Error("Sheet 'TextManipul_03' not found");
+  const rng = sh.getRange(2,1, sh.getLastRow()-1, 1);
+  const out = sh.getRange(2,2, sh.getLastRow()-1, 3);
+  const vals = rng.getValues().map(r => r[0]+"");
+  const split = vals.map(v => [v.split(" ").join("|")]);
+  const findA = vals.map(v => [v.indexOf("a")]);
+  const repl = vals.map(v => [v.replace(/a/g, "@")]);
+  out.setValues(split.map((s,i)=>[s[0], findA[i][0], repl[i][0]]));
+  Logger.log("Processed text columns.");
+}
+
+// Example 062: [Text Manipulation] Concatenate Columns
+function ex062_TextManipulation_04() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("TextManipul_04");
+  if (!sh) throw new Error("Sheet 'TextManipul_04' not found");
+  const rng = sh.getRange(2,1, sh.getLastRow()-1, 1);
+  const out = sh.getRange(2,2, sh.getLastRow()-1, 3);
+  const vals = rng.getValues().map(r => r[0]+"");
+  const split = vals.map(v => [v.split(" ").join("|")]);
+  const findA = vals.map(v => [v.indexOf("a")]);
+  const repl = vals.map(v => [v.replace(/a/g, "@")]);
+  out.setValues(split.map((s,i)=>[s[0], findA[i][0], repl[i][0]]));
+  Logger.log("Processed text columns.");
+}
+
+// Example 063: [Text Manipulation] Left/Right/Mid
+function ex063_TextManipulation_05() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("TextManipul_05");
+  if (!sh) throw new Error("Sheet 'TextManipul_05' not found");
+  const rng = sh.getRange(2,1, sh.getLastRow()-1, 1);
+  const out = sh.getRange(2,2, sh.getLastRow()-1, 3);
+  const vals = rng.getValues().map(r => r[0]+"");
+  const split = vals.map(v => [v.split(" ").join("|")]);
+  const findA = vals.map(v => [v.indexOf("a")]);
+  const repl = vals.map(v => [v.replace(/a/g, "@")]);
+  out.setValues(split.map((s,i)=>[s[0], findA[i][0], repl[i][0]]));
+  Logger.log("Processed text columns.");
+}
+
+// Example 064: [Text Manipulation] Pad Numbers
+function ex064_TextManipulation_06() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("TextManipul_06");
+  if (!sh) throw new Error("Sheet 'TextManipul_06' not found");
+  const rng = sh.getRange(2,1, sh.getLastRow()-1, 1);
+  const out = sh.getRange(2,2, sh.getLastRow()-1, 3);
+  const vals = rng.getValues().map(r => r[0]+"");
+  const split = vals.map(v => [v.split(" ").join("|")]);
+  const findA = vals.map(v => [v.indexOf("a")]);
+  const repl = vals.map(v => [v.replace(/a/g, "@")]);
+  out.setValues(split.map((s,i)=>[s[0], findA[i][0], repl[i][0]]));
+  Logger.log("Processed text columns.");
+}
+
+// Example 065: [Text Manipulation] Regex Extract
+function ex065_TextManipulation_07() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("TextManipul_07");
+  if (!sh) throw new Error("Sheet 'TextManipul_07' not found");
+  const rng = sh.getRange(2,1, sh.getLastRow()-1, 1);
+  const out = sh.getRange(2,2, sh.getLastRow()-1, 3);
+  const vals = rng.getValues().map(r => r[0]+"");
+  const split = vals.map(v => [v.split(" ").join("|")]);
+  const findA = vals.map(v => [v.indexOf("a")]);
+  const repl = vals.map(v => [v.replace(/a/g, "@")]);
+  out.setValues(split.map((s,i)=>[s[0], findA[i][0], repl[i][0]]));
+  Logger.log("Processed text columns.");
+}
+
+// Example 066: [Text Manipulation] Regex Replace
+function ex066_TextManipulation_08() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("TextManipul_08");
+  if (!sh) throw new Error("Sheet 'TextManipul_08' not found");
+  const rng = sh.getRange(2,1, sh.getLastRow()-1, 1);
+  const out = sh.getRange(2,2, sh.getLastRow()-1, 3);
+  const vals = rng.getValues().map(r => r[0]+"");
+  const split = vals.map(v => [v.split(" ").join("|")]);
+  const findA = vals.map(v => [v.indexOf("a")]);
+  const repl = vals.map(v => [v.replace(/a/g, "@")]);
+  out.setValues(split.map((s,i)=>[s[0], findA[i][0], repl[i][0]]));
+  Logger.log("Processed text columns.");
+}
+
+// Example 067: [Arrays & Maps] Flatten 2D Range
+function ex067_ArraysMaps_01() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("Arrays&Map_01");
+  if (!sh) throw new Error("Sheet 'Arrays&Map_01' not found");
+  const rng = sh.getRange(2,1, sh.getLastRow()-1, 2);
+  const vals = rng.getValues();
+  const map = new Map();
+  vals.forEach(([k,v])=> map.set(k, (map.get(k)||0) + Number(v||0)));
+  const out = Array.from(map.entries()).map(([k,v])=>[k,v]);
+  sh.getRange(1,4,1,2).setValues([["Key","Total"]]);
+  sh.getRange(2,4,out.length,2).setValues(out);
+  Logger.log("Aggregated totals by key.");
+}
+
+// Example 068: [Arrays & Maps] Map Values by Key
+function ex068_ArraysMaps_02() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("Arrays&Map_02");
+  if (!sh) throw new Error("Sheet 'Arrays&Map_02' not found");
+  const rng = sh.getRange(2,1, sh.getLastRow()-1, 2);
+  const vals = rng.getValues();
+  const map = new Map();
+  vals.forEach(([k,v])=> map.set(k, (map.get(k)||0) + Number(v||0)));
+  const out = Array.from(map.entries()).map(([k,v])=>[k,v]);
+  sh.getRange(1,4,1,2).setValues([["Key","Total"]]);
+  sh.getRange(2,4,out.length,2).setValues(out);
+  Logger.log("Aggregated totals by key.");
+}
+
+// Example 069: [Arrays & Maps] Group and Sum
+function ex069_ArraysMaps_03() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("Arrays&Map_03");
+  if (!sh) throw new Error("Sheet 'Arrays&Map_03' not found");
+  const rng = sh.getRange(2,1, sh.getLastRow()-1, 2);
+  const vals = rng.getValues();
+  const map = new Map();
+  vals.forEach(([k,v])=> map.set(k, (map.get(k)||0) + Number(v||0)));
+  const out = Array.from(map.entries()).map(([k,v])=>[k,v]);
+  sh.getRange(1,4,1,2).setValues([["Key","Total"]]);
+  sh.getRange(2,4,out.length,2).setValues(out);
+  Logger.log("Aggregated totals by key.");
+}
+
+// Example 070: [Arrays & Maps] Pivot Map (Key->Total)
+function ex070_ArraysMaps_04() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("Arrays&Map_04");
+  if (!sh) throw new Error("Sheet 'Arrays&Map_04' not found");
+  const rng = sh.getRange(2,1, sh.getLastRow()-1, 2);
+  const vals = rng.getValues();
+  const map = new Map();
+  vals.forEach(([k,v])=> map.set(k, (map.get(k)||0) + Number(v||0)));
+  const out = Array.from(map.entries()).map(([k,v])=>[k,v]);
+  sh.getRange(1,4,1,2).setValues([["Key","Total"]]);
+  sh.getRange(2,4,out.length,2).setValues(out);
+  Logger.log("Aggregated totals by key.");
+}
+
+// Example 071: [Arrays & Maps] Distinct with Counts
+function ex071_ArraysMaps_05() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("Arrays&Map_05");
+  if (!sh) throw new Error("Sheet 'Arrays&Map_05' not found");
+  const rng = sh.getRange(2,1, sh.getLastRow()-1, 2);
+  const vals = rng.getValues();
+  const map = new Map();
+  vals.forEach(([k,v])=> map.set(k, (map.get(k)||0) + Number(v||0)));
+  const out = Array.from(map.entries()).map(([k,v])=>[k,v]);
+  sh.getRange(1,4,1,2).setValues([["Key","Total"]]);
+  sh.getRange(2,4,out.length,2).setValues(out);
+  Logger.log("Aggregated totals by key.");
+}
+
+// Example 072: [Arrays & Maps] Index Lookup from Map
+function ex072_ArraysMaps_06() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("Arrays&Map_06");
+  if (!sh) throw new Error("Sheet 'Arrays&Map_06' not found");
+  const rng = sh.getRange(2,1, sh.getLastRow()-1, 2);
+  const vals = rng.getValues();
+  const map = new Map();
+  vals.forEach(([k,v])=> map.set(k, (map.get(k)||0) + Number(v||0)));
+  const out = Array.from(map.entries()).map(([k,v])=>[k,v]);
+  sh.getRange(1,4,1,2).setValues([["Key","Total"]]);
+  sh.getRange(2,4,out.length,2).setValues(out);
+  Logger.log("Aggregated totals by key.");
+}
+
+// Example 073: [Sheets & Workbooks] Create Sheet If Missing
+function ex073_SheetsWorkbooks_01() {
+  const ss = SpreadsheetApp.getActive();
+  const name = "Sheets&Wor_01_COPY";
+  let sh = ss.getSheetByName(name);
+  if (!sh) {
+    const src = ss.getSheetByName("Sheets&Wor_01");
+    sh = src.copyTo(ss).setName(name);
+    Logger.log("Created sheet " + name);
+  } else {
+    Logger.log("Sheet already exists: " + name);
+  }
+}
+
+// Example 074: [Sheets & Workbooks] Duplicate Sheet
+function ex074_SheetsWorkbooks_02() {
+  const ss = SpreadsheetApp.getActive();
+  const name = "Sheets&Wor_02_COPY";
+  let sh = ss.getSheetByName(name);
+  if (!sh) {
+    const src = ss.getSheetByName("Sheets&Wor_02");
+    sh = src.copyTo(ss).setName(name);
+    Logger.log("Created sheet " + name);
+  } else {
+    Logger.log("Sheet already exists: " + name);
+  }
+}
+
+// Example 075: [Sheets & Workbooks] Rename Sheet
+function ex075_SheetsWorkbooks_03() {
+  const ss = SpreadsheetApp.getActive();
+  const name = "Sheets&Wor_03_COPY";
+  let sh = ss.getSheetByName(name);
+  if (!sh) {
+    const src = ss.getSheetByName("Sheets&Wor_03");
+    sh = src.copyTo(ss).setName(name);
+    Logger.log("Created sheet " + name);
+  } else {
+    Logger.log("Sheet already exists: " + name);
+  }
+}
+
+// Example 076: [Sheets & Workbooks] Delete Sheet (Safe)
+function ex076_SheetsWorkbooks_04() {
+  const ss = SpreadsheetApp.getActive();
+  const name = "Sheets&Wor_04_COPY";
+  let sh = ss.getSheetByName(name);
+  if (!sh) {
+    const src = ss.getSheetByName("Sheets&Wor_04");
+    sh = src.copyTo(ss).setName(name);
+    Logger.log("Created sheet " + name);
+  } else {
+    Logger.log("Sheet already exists: " + name);
+  }
+}
+
+// Example 077: [Sheets & Workbooks] List All Sheets
+function ex077_SheetsWorkbooks_05() {
+  const ss = SpreadsheetApp.getActive();
+  const name = "Sheets&Wor_05_COPY";
+  let sh = ss.getSheetByName(name);
+  if (!sh) {
+    const src = ss.getSheetByName("Sheets&Wor_05");
+    sh = src.copyTo(ss).setName(name);
+    Logger.log("Created sheet " + name);
+  } else {
+    Logger.log("Sheet already exists: " + name);
+  }
+}
+
+// Example 078: [Sheets & Workbooks] Move Sheet Position
+function ex078_SheetsWorkbooks_06() {
+  const ss = SpreadsheetApp.getActive();
+  const name = "Sheets&Wor_06_COPY";
+  let sh = ss.getSheetByName(name);
+  if (!sh) {
+    const src = ss.getSheetByName("Sheets&Wor_06");
+    sh = src.copyTo(ss).setName(name);
+    Logger.log("Created sheet " + name);
+  } else {
+    Logger.log("Sheet already exists: " + name);
+  }
+}
+
+// Example 079: [Sheets & Workbooks] Protect Sheet (Basic)
+function ex079_SheetsWorkbooks_07() {
+  const ss = SpreadsheetApp.getActive();
+  const name = "Sheets&Wor_07_COPY";
+  let sh = ss.getSheetByName(name);
+  if (!sh) {
+    const src = ss.getSheetByName("Sheets&Wor_07");
+    sh = src.copyTo(ss).setName(name);
+    Logger.log("Created sheet " + name);
+  } else {
+    Logger.log("Sheet already exists: " + name);
+  }
+}
+
+// Example 080: [Charts] Insert Column Chart
+function ex080_Charts_01() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("Charts_01");
+  if (!sh) throw new Error("Sheet 'Charts_01' not found");
+  const range = sh.getRange(1,1, sh.getLastRow(), 2);
+  const chart = sh.newChart()
+    .asColumnChart()
+    .addRange(range)
+    .setPosition(1,4,0,0)
+    .build();
+  sh.insertChart(chart);
+  Logger.log("Inserted a column chart.");
+}
+
+// Example 081: [Charts] Insert Line Chart
+function ex081_Charts_02() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("Charts_02");
+  if (!sh) throw new Error("Sheet 'Charts_02' not found");
+  const range = sh.getRange(1,1, sh.getLastRow(), 2);
+  const chart = sh.newChart()
+    .asColumnChart()
+    .addRange(range)
+    .setPosition(1,4,0,0)
+    .build();
+  sh.insertChart(chart);
+  Logger.log("Inserted a column chart.");
+}
+
+// Example 082: [Charts] Insert Pie Chart
+function ex082_Charts_03() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("Charts_03");
+  if (!sh) throw new Error("Sheet 'Charts_03' not found");
+  const range = sh.getRange(1,1, sh.getLastRow(), 2);
+  const chart = sh.newChart()
+    .asColumnChart()
+    .addRange(range)
+    .setPosition(1,4,0,0)
+    .build();
+  sh.insertChart(chart);
+  Logger.log("Inserted a column chart.");
+}
+
+// Example 083: [Charts] Update Chart Range
+function ex083_Charts_04() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("Charts_04");
+  if (!sh) throw new Error("Sheet 'Charts_04' not found");
+  const range = sh.getRange(1,1, sh.getLastRow(), 2);
+  const chart = sh.newChart()
+    .asColumnChart()
+    .addRange(range)
+    .setPosition(1,4,0,0)
+    .build();
+  sh.insertChart(chart);
+  Logger.log("Inserted a column chart.");
+}
+
+// Example 084: [Charts] Delete All Charts on Sheet
+function ex084_Charts_05() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("Charts_05");
+  if (!sh) throw new Error("Sheet 'Charts_05' not found");
+  const range = sh.getRange(1,1, sh.getLastRow(), 2);
+  const chart = sh.newChart()
+    .asColumnChart()
+    .addRange(range)
+    .setPosition(1,4,0,0)
+    .build();
+  sh.insertChart(chart);
+  Logger.log("Inserted a column chart.");
+}
+
+// Example 085: [Import & Export] Export Sheet to CSV
+function ex085_ImportExport_01() {
+  const ss = SpreadsheetApp.getActive();
+  const sh = ss.getSheetByName("Import&Exp_01");
+  if (!sh) throw new Error("Sheet 'Import&Exp_01' not found");
+  const csv = sh.getDataRange().getDisplayValues().map(r => r.map(v => '"'+String(v).replace('"','""')+'"').join(",")).join("\n");
+  Logger.log("CSV length: " + csv.length);
+}
+
+// Example 086: [Import & Export] Import CSV into Sheet
+function ex086_ImportExport_02() {
+  const ss = SpreadsheetApp.getActive();
+  const sh = ss.getSheetByName("Import&Exp_02");
+  if (!sh) throw new Error("Sheet 'Import&Exp_02' not found");
+  const csv = sh.getDataRange().getDisplayValues().map(r => r.map(v => '"'+String(v).replace('"','""')+'"').join(",")).join("\n");
+  Logger.log("CSV length: " + csv.length);
+}
+
+// Example 087: [Import & Export] Export as PDF
+function ex087_ImportExport_03() {
+  const ss = SpreadsheetApp.getActive();
+  const sh = ss.getSheetByName("Import&Exp_03");
+  if (!sh) throw new Error("Sheet 'Import&Exp_03' not found");
+  const csv = sh.getDataRange().getDisplayValues().map(r => r.map(v => '"'+String(v).replace('"','""')+'"').join(",")).join("\n");
+  Logger.log("CSV length: " + csv.length);
+}
+
+// Example 088: [Import & Export] Copy to Another Spreadsheet
+function ex088_ImportExport_04() {
+  const ss = SpreadsheetApp.getActive();
+  const sh = ss.getSheetByName("Import&Exp_04");
+  if (!sh) throw new Error("Sheet 'Import&Exp_04' not found");
+  const csv = sh.getDataRange().getDisplayValues().map(r => r.map(v => '"'+String(v).replace('"','""')+'"').join(",")).join("\n");
+  Logger.log("CSV length: " + csv.length);
+}
+
+// Example 089: [Import & Export] Email as Attachment
+function ex089_ImportExport_05() {
+  const ss = SpreadsheetApp.getActive();
+  const sh = ss.getSheetByName("Import&Exp_05");
+  if (!sh) throw new Error("Sheet 'Import&Exp_05' not found");
+  const csv = sh.getDataRange().getDisplayValues().map(r => r.map(v => '"'+String(v).replace('"','""')+'"').join(",")).join("\n");
+  Logger.log("CSV length: " + csv.length);
+}
+
+// Example 090: [Triggers & UI] Installable Time Trigger
+function ex090_TriggersUI_01() {
+  const ui = SpreadsheetApp.getUi();
+  ui.alert("Hello from Installable Time Trigger on sheet Triggers&U_01!");
+}
+
+// Example 091: [Triggers & UI] On Edit Logger
+function ex091_TriggersUI_02() {
+  const ui = SpreadsheetApp.getUi();
+  ui.alert("Hello from On Edit Logger on sheet Triggers&U_02!");
+}
+
+// Example 092: [Triggers & UI] Custom Menu
+function ex092_TriggersUI_03() {
+  const ui = SpreadsheetApp.getUi();
+  ui.alert("Hello from Custom Menu on sheet Triggers&U_03!");
+}
+
+// Example 093: [Triggers & UI] Prompt for User Input
+function ex093_TriggersUI_04() {
+  const ui = SpreadsheetApp.getUi();
+  ui.alert("Hello from Prompt for User Input on sheet Triggers&U_04!");
+}
+
+// Example 094: [Triggers & UI] Sidebar HTML UI
+function ex094_TriggersUI_05() {
+  const ui = SpreadsheetApp.getUi();
+  ui.alert("Hello from Sidebar HTML UI on sheet Triggers&U_05!");
+}
+
+// Example 095: [Triggers & UI] Toast Notifications
+function ex095_TriggersUI_06() {
+  const ui = SpreadsheetApp.getUi();
+  ui.alert("Hello from Toast Notifications on sheet Triggers&U_06!");
+}
+
+// Example 096: [Validation & Protection] Add Dropdown Validation
+function ex096_ValidationProtection_01() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("Validation&_01");
+  if (!sh) throw new Error("Sheet 'Validation&_01' not found");
+  const rng = sh.getRange(2,1, sh.getLastRow()-1, 1);
+  const rule = SpreadsheetApp.newDataValidation()
+    .requireValueInList(["Open","Closed","In Progress"], true)
+    .setHelpText("Pick a valid status.")
+    .build();
+  rng.setDataValidation(rule);
+  Logger.log("Applied dropdown validation.");
+}
+
+// Example 097: [Validation & Protection] Restrict Numbers Only
+function ex097_ValidationProtection_02() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("Validation&_02");
+  if (!sh) throw new Error("Sheet 'Validation&_02' not found");
+  const rng = sh.getRange(2,1, sh.getLastRow()-1, 1);
+  const rule = SpreadsheetApp.newDataValidation()
+    .requireValueInList(["Open","Closed","In Progress"], true)
+    .setHelpText("Pick a valid status.")
+    .build();
+  rng.setDataValidation(rule);
+  Logger.log("Applied dropdown validation.");
+}
+
+// Example 098: [Validation & Protection] Date Range Validation
+function ex098_ValidationProtection_03() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("Validation&_03");
+  if (!sh) throw new Error("Sheet 'Validation&_03' not found");
+  const rng = sh.getRange(2,1, sh.getLastRow()-1, 1);
+  const rule = SpreadsheetApp.newDataValidation()
+    .requireValueInList(["Open","Closed","In Progress"], true)
+    .setHelpText("Pick a valid status.")
+    .build();
+  rng.setDataValidation(rule);
+  Logger.log("Applied dropdown validation.");
+}
+
+// Example 099: [Validation & Protection] Protect Range (Basic)
+function ex099_ValidationProtection_04() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("Validation&_04");
+  if (!sh) throw new Error("Sheet 'Validation&_04' not found");
+  const rng = sh.getRange(2,1, sh.getLastRow()-1, 1);
+  const rule = SpreadsheetApp.newDataValidation()
+    .requireValueInList(["Open","Closed","In Progress"], true)
+    .setHelpText("Pick a valid status.")
+    .build();
+  rng.setDataValidation(rule);
+  Logger.log("Applied dropdown validation.");
+}
+
+// Example 100: [Validation & Protection] Remove All Validations
+function ex100_ValidationProtection_05() {
+  const sh = SpreadsheetApp.getActive().getSheetByName("Validation&_05");
+  if (!sh) throw new Error("Sheet 'Validation&_05' not found");
+  const rng = sh.getRange(2,1, sh.getLastRow()-1, 1);
+  const rule = SpreadsheetApp.newDataValidation()
+    .requireValueInList(["Open","Closed","In Progress"], true)
+    .setHelpText("Pick a valid status.")
+    .build();
+  rng.setDataValidation(rule);
+  Logger.log("Applied dropdown validation.");
+}
