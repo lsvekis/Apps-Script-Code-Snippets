@@ -1,0 +1,147 @@
+/**
+ * Duplicate-Above Highlighter for Google Sheets
+ * - If a value already exists anywhere ABOVE the edited cell in the same column,
+ *   the edited cell is filled red.
+ * - Works best for "entry columns" where new rows are appended.
+ *
+ * Setup:
+ * 1) Extensions → Apps Script
+ * 2) Paste this code into Code.gs
+ * 3) Save
+ *
+ * Notes:
+ * - Simple onEdit triggers run automatically for the editor.
+ * - If you need it to work for other users with extra services, create an installable trigger.
+ */
+
+// ======= CONFIG =======
+const CONFIG = {
+  // If empty array, script works on all sheets. Otherwise only these sheet names:
+  sheetNames: [],
+
+  // Which columns should be checked?
+  // Options:
+  //   - "ALL" checks any column
+  //   - Provide a list like [1, 3, 5] for columns A, C, E
+  columnsToCheck: "ALL",
+
+  // Ignore header rows (start checking from this row number):
+  headerRows: 1,
+
+  // Styling for duplicates:
+  duplicateBackground: "#ffcccc", // light red
+  duplicateFontColor: "#000000",   // optional (keep readable)
+
+  // Styling for non-duplicates (reset):
+  // Use null to clear to default, or set a color like "#ffffff"
+  normalBackground: null,
+  normalFontColor: null,
+
+  // Should comparison be case-insensitive?
+  caseInsensitive: true,
+
+  // Trim spaces before comparing?
+  trimWhitespace: true
+};
+
+// ======= MAIN TRIGGER =======
+function onEdit(e) {
+  try {
+    if (!e || !e.range) return;
+
+    const range = e.range;
+    const sheet = range.getSheet();
+    const row = range.getRow();
+    const col = range.getColumn();
+
+    // Only single-cell edits (skip pastes across many cells)
+    if (range.getNumRows() !== 1 || range.getNumColumns() !== 1) return;
+
+    // Sheet filter
+    if (Array.isArray(CONFIG.sheetNames) && CONFIG.sheetNames.length > 0) {
+      if (!CONFIG.sheetNames.includes(sheet.getName())) return;
+    }
+
+    // Column filter
+    if (CONFIG.columnsToCheck !== "ALL") {
+      if (!CONFIG.columnsToCheck.includes(col)) return;
+    }
+
+    // Ignore header rows
+    if (row <= CONFIG.headerRows) {
+      // Optional: reset header formatting if you want
+      return;
+    }
+
+    const value = range.getValue();
+    if (value === "" || value === null) {
+      // If cleared, reset formatting
+      setNormalStyle_(range);
+      return;
+    }
+
+    // Normalize value for comparison
+    const key = normalize_(value);
+
+    // Read values above in same column (from row CONFIG.headerRows+1 to row-1)
+    const startRow = CONFIG.headerRows + 1;
+    const numRowsAbove = row - startRow;
+
+    if (numRowsAbove <= 0) {
+      // nothing above to compare
+      setNormalStyle_(range);
+      return;
+    }
+
+    const aboveRange = sheet.getRange(startRow, col, numRowsAbove, 1);
+    const aboveValues = aboveRange.getValues(); // 2D array
+
+    let isDuplicateAbove = false;
+    for (let i = 0; i < aboveValues.length; i++) {
+      const v = aboveValues[i][0];
+      if (v === "" || v === null) continue;
+      if (normalize_(v) === key) {
+        isDuplicateAbove = true;
+        break;
+      }
+    }
+
+    if (isDuplicateAbove) {
+      setDuplicateStyle_(range);
+    } else {
+      setNormalStyle_(range);
+    }
+  } catch (err) {
+    // Silent fail in simple triggers (optional logging)
+    // Logger.log(err);
+  }
+}
+
+// ======= HELPERS =======
+function normalize_(val) {
+  let s = String(val);
+
+  if (CONFIG.trimWhitespace) s = s.trim();
+  if (CONFIG.caseInsensitive) s = s.toLowerCase();
+
+  return s;
+}
+
+function setDuplicateStyle_(range) {
+  range.setBackground(CONFIG.duplicateBackground)
+       .setFontColor(CONFIG.duplicateFontColor);
+}
+
+function setNormalStyle_(range) {
+  if (CONFIG.normalBackground === null) {
+    range.setBackground(null); // clears to default
+  } else {
+    range.setBackground(CONFIG.normalBackground);
+  }
+
+  if (CONFIG.normalFontColor === null) {
+    range.setFontColor(null);
+  } else {
+    range.setFontColor(CONFIG.normalFontColor);
+  }
+}
