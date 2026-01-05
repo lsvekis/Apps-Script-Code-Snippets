@@ -1,0 +1,84 @@
+/**
+ * Auto-Protect Rows When Status Is "Complete"
+ *
+ * - Watches edits in a specific column
+ * - Protects the entire row when finalized
+ * - Removes protection if status changes
+ */
+
+// ========= CONFIG =========
+const CONFIG = {
+  sheetNames: [], // empty = all sheets, or ["Tasks", "Tracker"]
+  statusColumn: 4, // Column number where status lives (A=1, B=2, ...)
+  headerRows: 1,
+  finalizedValue: "complete", // comparison is case-insensitive
+  descriptionPrefix: "Auto-protected (status complete)"
+};
+
+// ========= TRIGGER =========
+function onEdit(e) {
+  if (!e || !e.range) return;
+
+  const range = e.range;
+  const sheet = range.getSheet();
+  const row = range.getRow();
+  const col = range.getColumn();
+
+  // Only single-cell edits
+  if (range.getNumRows() !== 1 || range.getNumColumns() !== 1) return;
+
+  // Sheet filter
+  if (CONFIG.sheetNames.length > 0 &&
+      !CONFIG.sheetNames.includes(sheet.getName())) {
+    return;
+  }
+
+  // Ignore headers
+  if (row <= CONFIG.headerRows) return;
+
+  // Only watch the status column
+  if (col !== CONFIG.statusColumn) return;
+
+  const newValue = String(range.getValue()).trim().toLowerCase();
+
+  if (newValue === CONFIG.finalizedValue) {
+    protectRow_(sheet, row);
+  } else {
+    unprotectRow_(sheet, row);
+  }
+}
+
+// ========= HELPERS =========
+function protectRow_(sheet, row) {
+  const range = sheet.getRange(row, 1, 1, sheet.getMaxColumns());
+  const protections = sheet.getProtections(SpreadsheetApp.ProtectionType.RANGE);
+
+  // Avoid duplicate protections
+  for (const p of protections) {
+    if (p.getRange().getA1Notation() === range.getA1Notation()) {
+      return;
+    }
+  }
+
+  const protection = range.protect();
+  protection.setDescription(`${CONFIG.descriptionPrefix} – Row ${row}`);
+
+  // Only owner can edit by default
+  protection.removeEditors(protection.getEditors());
+  if (protection.canDomainEdit()) {
+    protection.setDomainEdit(false);
+  }
+}
+
+function unprotectRow_(sheet, row) {
+  const protections = sheet.getProtections(SpreadsheetApp.ProtectionType.RANGE);
+
+  for (const p of protections) {
+    const r = p.getRange();
+    if (r.getRow() === row && r.getNumRows() === 1) {
+      if (p.getDescription()?.startsWith(CONFIG.descriptionPrefix)) {
+        p.remove();
+      }
+    }
+  }
+}
