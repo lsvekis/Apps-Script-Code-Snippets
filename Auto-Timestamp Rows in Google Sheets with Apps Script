@@ -1,0 +1,80 @@
+/**
+ * Auto-Timestamp for Google Sheets
+ * - When a "Status" cell changes to a target value, write a timestamp in another column.
+ * - Optionally set timestamp only once, and/or clear timestamp if status changes away.
+ */
+
+// ============ CONFIG ============
+const CONFIG = {
+  sheetNames: [],          // [] = all sheets, or ["Tracker", "Submissions"]
+  headerRows: 1,
+
+  statusColumn: 3,         // e.g. Column C = 3
+  timestampColumn: 4,      // e.g. Column D = 4
+
+  // Trigger values that should create a timestamp (case-insensitive)
+  triggerStatuses: ["submitted", "complete", "approved"],
+
+  // If true: only set timestamp if timestamp cell is empty
+  setOnce: true,
+
+  // If true: clearing/reverting status away from trigger will clear timestamp
+  clearOnRevert: false,
+
+  // Timestamp format (uses spreadsheet timezone)
+  // Examples:
+  // "yyyy-MM-dd HH:mm"
+  // "MMM d, yyyy h:mm a"
+  timestampFormat: "yyyy-MM-dd HH:mm"
+};
+
+// ============ TRIGGER ============
+function onEdit(e) {
+  try {
+    if (!e || !e.range) return;
+
+    const range = e.range;
+    const sheet = range.getSheet();
+    const row = range.getRow();
+    const col = range.getColumn();
+
+    // single-cell edits only
+    if (range.getNumRows() !== 1 || range.getNumColumns() !== 1) return;
+
+    // optional sheet filter
+    if (CONFIG.sheetNames.length > 0 && !CONFIG.sheetNames.includes(sheet.getName())) return;
+
+    // ignore header rows
+    if (row <= CONFIG.headerRows) return;
+
+    // only watch status column
+    if (col !== CONFIG.statusColumn) return;
+
+    const statusRaw = range.getValue();
+    const status = String(statusRaw ?? "").trim().toLowerCase();
+
+    const tsCell = sheet.getRange(row, CONFIG.timestampColumn);
+    const currentTs = tsCell.getValue();
+
+    const isTrigger = CONFIG.triggerStatuses.includes(status);
+
+    if (isTrigger) {
+      if (CONFIG.setOnce && currentTs) return; // don't overwrite existing timestamp
+
+      const now = new Date();
+      const tz = SpreadsheetApp.getActive().getSpreadsheetTimeZone();
+      const formatted = Utilities.formatDate(now, tz, CONFIG.timestampFormat);
+
+      // write as a display string (stable + readable)
+      tsCell.setValue(formatted);
+
+    } else {
+      // not a trigger status
+      if (CONFIG.clearOnRevert && currentTs) {
+        tsCell.clearContent();
+      }
+    }
+  } catch (err) {
+    // Logger.log(err); // optional
+  }
+}
