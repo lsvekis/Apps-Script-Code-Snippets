@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+  </head>
+  <body>
+    <div style="font-family: Arial, sans-serif; padding: 14px;">
+      <h2>AI Data Cleaner</h2>
+
+      <p>Select a range (including headers), then describe how you'd like it cleaned.</p>
+
+      <label><b>Cleaning Instructions</b></label><br>
+      <textarea id="instructions"
+                style="width:100%; height:90px; margin-top:6px;"
+                placeholder="Trim spaces, lowercase emails, normalize dates, remove duplicates"></textarea>
+
+      <button onclick="runCleaner()" style="margin-top:10px;">Analyze & Clean</button>
+
+      <pre id="output"
+           style="white-space: pre-wrap; margin-top:12px; max-height:260px; overflow:auto;"></pre>
+    </div>
+
+    <script>
+      function runCleaner() {
+        var instructions = document.getElementById("instructions").value || "";
+        document.getElementById("output").textContent = "Analyzing selected range with Gemini...";
+
+        google.script.run
+          .withSuccessHandler(function(msg) {
+            document.getElementById("output").textContent = msg;
+          })
+          .cleanSelectedRange(instructions);
+      }
+    </script>
+  </body>
+</html>
