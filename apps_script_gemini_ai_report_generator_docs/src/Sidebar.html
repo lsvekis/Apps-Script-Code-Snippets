@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+  </head>
+  <body>
+    <div style="font-family: Arial, sans-serif; padding: 14px;">
+      <h2>AI Report Generator</h2>
+
+      <label><b>Audience</b></label><br>
+      <input id="audience"
+             style="width:100%; margin-bottom:8px;"
+             placeholder="e.g., Executives, Managers, Clients" />
+
+      <label><b>Report Tone</b></label><br>
+      <select id="tone" style="width:100%; margin-bottom:8px;">
+        <option>Executive Summary</option>
+        <option>Technical Analysis</option>
+        <option>Plain Language</option>
+      </select>
+
+      <button onclick="generate()">Generate Report</button>
+
+      <pre id="output"
+           style="white-space: pre-wrap; margin-top:12px; max-height:260px; overflow:auto;"></pre>
+
+      <script>
+        function generate() {
+          document.getElementById("output").textContent = "Analyzing data...";
+          google.script.run
+            .withSuccessHandler(function(msg) {
+              document.getElementById("output").textContent = msg;
+            })
+            .generateReport(
+              document.getElementById("audience").value,
+              document.getElementById("tone").value
+            );
+        }
+      </script>
+    </div>
+  </body>
+</html>
