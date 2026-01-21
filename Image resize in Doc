@@ -1,0 +1,48 @@
+function resizeImagesToHalfPageWidth() {
+  const doc = DocumentApp.getActiveDocument();
+  const body = doc.getBody();
+
+  // Get page size and margins (points)
+  const pageWidth = body.getPageWidth();
+  const marginLeft = body.getMarginLeft();
+  const marginRight = body.getMarginRight();
+
+  // Usable content width
+  const usableWidth = pageWidth - marginLeft - marginRight;
+
+  // Target width = 50%
+  const targetWidth = usableWidth * 0.5;
+
+  let imageCount = 0;
+
+  // Walk through all elements
+  const numChildren = body.getNumChildren();
+  for (let i = 0; i < numChildren; i++) {
+    const element = body.getChild(i);
+
+    if (element.getType() === DocumentApp.ElementType.PARAGRAPH) {
+      const paragraph = element.asParagraph();
+      const numElements = paragraph.getNumChildren();
+
+      for (let j = 0; j < numElements; j++) {
+        const child = paragraph.getChild(j);
+
+        if (child.getType() === DocumentApp.ElementType.INLINE_IMAGE) {
+          const image = child.asInlineImage();
+
+          // Maintain aspect ratio
+          const originalWidth = image.getWidth();
+          const originalHeight = image.getHeight();
+          const scale = targetWidth / originalWidth;
+
+          image.setWidth(targetWidth);
+          image.setHeight(originalHeight * scale);
+
+          imageCount++;
+        }
+      }
+    }
+  }
+
+  Logger.log(`Resized ${imageCount} images to 50% page width.`);
+}
