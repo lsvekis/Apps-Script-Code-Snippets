@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+  <head><base target="_top"></head>
+  <body>
+    <div style="font-family:Arial,sans-serif;padding:14px;">
+      <h2>KB Q&A</h2>
+      <p>Ask questions using your indexed Docs (with citations).</p>
+
+      <label><b>Question</b></label><br>
+      <textarea id="q" style="width:100%;height:90px;margin-top:6px;"
+                placeholder="Ask something your Docs contain..."></textarea>
+
+      <button onclick="ask()" style="margin-top:10px;">Ask</button>
+
+      <pre id="out" style="white-space:pre-wrap;margin-top:12px;max-height:300px;overflow:auto;"></pre>
+
+      <script>
+        function ask() {
+          const q = document.getElementById("q").value;
+          document.getElementById("out").textContent = "Searching & answering...";
+          google.script.run
+            .withSuccessHandler(msg => document.getElementById("out").textContent = msg)
+            .askKb(q);
+        }
+      </script>
+    </div>
+  </body>
+</html>

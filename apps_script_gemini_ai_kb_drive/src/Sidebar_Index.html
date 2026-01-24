@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+  <head><base target="_top"></head>
+  <body>
+    <div style="font-family:Arial,sans-serif;padding:14px;">
+      <h2>KB Builder</h2>
+      <p>Index a Google Drive folder of Google Docs into <b>KB_Index</b>.</p>
+
+      <label><b>Drive Folder ID</b></label><br>
+      <input id="folderId" style="width:100%;margin:6px 0 10px 0;"
+             placeholder="Paste folder ID here" />
+
+      <label style="display:block;margin-top:6px;">
+        <input type="checkbox" id="refresh" checked />
+        Refresh existing rows (recommended)
+      </label>
+
+      <button onclick="runIndex()" style="margin-top:10px;">Index Folder</button>
+
+      <pre id="out" style="white-space:pre-wrap;margin-top:12px;max-height:260px;overflow:auto;"></pre>
+
+      <script>
+        function runIndex() {
+          const folderId = document.getElementById("folderId").value;
+          const refresh = document.getElementById("refresh").checked;
+          document.getElementById("out").textContent = "Indexing folder...";
+
+          google.script.run
+            .withSuccessHandler(msg => document.getElementById("out").textContent = msg)
+            .indexFolder(folderId, refresh);
+        }
+      </script>
+    </div>
+  </body>
+</html>
