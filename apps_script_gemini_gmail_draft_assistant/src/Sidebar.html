@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+  <head><base target="_top"></head>
+  <body>
+    <div style="font-family:Arial,sans-serif;padding:14px;">
+      <h2>Gmail Draft Assistant</h2>
+
+      <label><b>Gmail Search Query</b></label><br>
+      <input id="query" style="width:100%;margin:6px 0 10px 0;"
+             placeholder='e.g., from:client subject:"invoice" newer_than:7d' />
+
+      <label><b>Tone</b></label><br>
+      <select id="tone" style="width:100%;margin:6px 0 10px 0;">
+        <option>Professional</option>
+        <option>Friendly</option>
+        <option>Firm</option>
+        <option>Concise</option>
+      </select>
+
+      <label><b>Extra context (optional)</b></label><br>
+      <textarea id="context" style="width:100%;height:70px;margin-top:6px;"
+                placeholder="Any details Gemini should consider..."></textarea>
+
+      <button onclick="run()" style="margin-top:10px;">Generate Draft</button>
+
+      <pre id="out" style="white-space:pre-wrap;margin-top:12px;max-height:280px;overflow:auto;"></pre>
+
+      <script>
+        function run() {
+          document.getElementById("out").textContent = "Loading email + drafting reply...";
+          google.script.run
+            .withSuccessHandler(msg => document.getElementById("out").textContent = msg)
+            .draftReply(
+              document.getElementById("query").value,
+              document.getElementById("tone").value,
+              document.getElementById("context").value
+            );
+        }
+      </script>
+    </div>
+  </body>
+</html>
