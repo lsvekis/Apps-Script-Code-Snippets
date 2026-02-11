@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+  <head><base target="_top"></head>
+  <body>
+    <div style="font-family:Arial,sans-serif;padding:14px;">
+      <h2>Meeting Notes → Action Plan</h2>
+
+      <label><b>Google Doc ID (meeting notes)</b></label><br>
+      <input id="docId" style="width:100%;margin:6px 0 10px 0;"
+             placeholder="Paste Doc ID here" />
+
+      <label><b>Meeting context (optional)</b></label><br>
+      <textarea id="context" style="width:100%;height:60px;margin-top:6px;"
+                placeholder="e.g., Project name, goals, attendees..."></textarea>
+
+      <button onclick="run()" style="margin-top:10px;">Generate Action Plan</button>
+
+      <pre id="out" style="white-space:pre-wrap;margin-top:12px;max-height:280px;overflow:auto;"></pre>
+
+      <script>
+        function run() {
+          document.getElementById("out").textContent = "Analyzing meeting notes...";
+          google.script.run
+            .withSuccessHandler(msg => document.getElementById("out").textContent = msg)
+            .processMeetingNotes(
+              document.getElementById("docId").value,
+              document.getElementById("context").value
+            );
+        }
+      </script>
+    </div>
+  </body>
+</html>
