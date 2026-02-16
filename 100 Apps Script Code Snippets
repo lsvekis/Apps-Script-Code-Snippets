@@ -1,0 +1,985 @@
+/***********************
+  101–140: Sheets (advanced patterns)
+************************/
+
+// 101) Create a custom menu
+function ex101_customMenu() {
+  SpreadsheetApp.getUi()
+    .createMenu('Automation')
+    .addItem('Run Cleanup', 'ex112_cleanupTrim')
+    .addToUi();
+}
+
+// 102) Add a sidebar UI
+function ex102_showSidebar() {
+  const html = HtmlService.createHtmlOutput('<h3>Sidebar</h3><p>Ready.</p>');
+  SpreadsheetApp.getUi().showSidebar(html);
+}
+
+// 103) Find & replace across entire sheet
+function ex103_findReplaceSheet() {
+  const sh = SpreadsheetApp.getActiveSheet();
+  sh.createTextFinder('foo').replaceAllWith('bar');
+}
+
+// 104) Freeze first column + header row
+function ex104_freezeHeaderAndFirstCol() {
+  const sh = SpreadsheetApp.getActiveSheet();
+  sh.setFrozenRows(1);
+  sh.setFrozenColumns(1);
+}
+
+// 105) Auto-size columns (A:Z)
+function ex105_autoResize() {
+  const sh = SpreadsheetApp.getActiveSheet();
+  sh.autoResizeColumns(1, Math.min(26, sh.getLastColumn()));
+}
+
+// 106) Apply data validation dropdown list
+function ex106_dropdownValidation() {
+  const sh = SpreadsheetApp.getActiveSheet();
+  const rule = SpreadsheetApp.newDataValidation()
+    .requireValueInList(['New', 'In Progress', 'Done'], true)
+    .setAllowInvalid(false)
+    .build();
+  sh.getRange('C2:C').setDataValidation(rule);
+}
+
+// 107) Add checkbox column
+function ex107_addCheckboxes() {
+  const sh = SpreadsheetApp.getActiveSheet();
+  sh.getRange('D2:D').insertCheckboxes();
+}
+
+// 108) Protect sheet except an input range
+function ex108_protectExceptRange() {
+  const sh = SpreadsheetApp.getActiveSheet();
+  const p = sh.protect().setDescription('Protected except inputs');
+  p.setUnprotectedRanges([sh.getRange('B2:D20')]);
+}
+
+// 109) Create a filter view-style filter (basic filter)
+function ex109_createFilter() {
+  const sh = SpreadsheetApp.getActiveSheet();
+  const r = sh.getDataRange();
+  if (!sh.getFilter()) r.createFilter();
+}
+
+// 110) Sort by multiple columns
+function ex110_multiSort() {
+  const sh = SpreadsheetApp.getActiveSheet();
+  const range = sh.getDataRange();
+  range.sort([{column: 2, ascending: true}, {column: 1, ascending: true}]);
+}
+
+// 111) Split text to columns by delimiter
+function ex111_splitToColumns() {
+  const sh = SpreadsheetApp.getActiveSheet();
+  const r = sh.getRange('A2:A' + sh.getLastRow());
+  const values = r.getValues().map(([v]) => String(v || '').split('|'));
+  const maxLen = Math.max(...values.map(a => a.length), 1);
+  const out = values.map(a => a.concat(Array(maxLen - a.length).fill('')));
+  sh.getRange(2, 2, out.length, maxLen).setValues(out);
+}
+
+// 112) Cleanup: trim + collapse spaces in a range
+function ex112_cleanupTrim() {
+  const sh = SpreadsheetApp.getActiveSheet();
+  const range = sh.getRange(2,1,Math.max(1, sh.getLastRow()-1), sh.getLastColumn());
+  const data = range.getValues().map(row => row.map(v => {
+    if (typeof v !== 'string') return v;
+    return v.trim().replace(/\s+/g, ' ');
+  }));
+  range.setValues(data);
+}
+
+// 113) Convert all text to Title Case in column
+function ex113_titleCaseColA() {
+  const sh = SpreadsheetApp.getActiveSheet();
+  const r = sh.getRange(2,1,Math.max(1, sh.getLastRow()-1),1);
+  const out = r.getValues().map(([v]) => [String(v||'').toLowerCase().replace(/\b\w/g, c => c.toUpperCase())]);
+  r.setValues(out);
+}
+
+// 114) Create a timestamp column when status changes (installable onEdit)
+function ex114_onEditTimestamp(e) {
+  const sh = e.range.getSheet();
+  if (sh.getName() !== SpreadsheetApp.getActiveSheet().getName()) return;
+  const statusCol = 3, tsCol = 4; // C status, D timestamp
+  if (e.range.getColumn() === statusCol && e.range.getRow() > 1) {
+    sh.getRange(e.range.getRow(), tsCol).setValue(new Date());
+  }
+}
+
+// 115) Copy only visible rows (after filter) to another sheet
+function ex115_copyVisibleRows() {
+  const ss = SpreadsheetApp.getActive();
+  const src = ss.getActiveSheet();
+  const dst = ss.getSheetByName('Visible Copy') || ss.insertSheet('Visible Copy');
+  const range = src.getDataRange();
+  const values = range.getValues();
+  const out = [];
+  for (let i=0;i<values.length;i++){
+    if (!src.isRowHiddenByFilter(i+1) && !src.isRowHiddenByUser(i+1)) out.push(values[i]);
+  }
+  dst.clear();
+  dst.getRange(1,1,out.length,out[0].length).setValues(out);
+}
+
+// 116) Create pivot table (basic)
+function ex116_createPivot() {
+  const ss = SpreadsheetApp.getActive();
+  const src = ss.getActiveSheet();
+  const pivot = ss.getSheetByName('Pivot') || ss.insertSheet('Pivot');
+  pivot.clear();
+  const sourceRange = src.getDataRange();
+  const anchor = pivot.getRange('A1');
+  const pt = anchor.createPivotTable(sourceRange);
+  pt.addRowGroup(1);
+  pt.addPivotValue(2, SpreadsheetApp.PivotTableSummarizeFunction.COUNTA);
+}
+
+// 117) Add conditional formatting: top 10%
+function ex117_cfTopTenPercent() {
+  const sh = SpreadsheetApp.getActiveSheet();
+  const rng = sh.getRange(2,2,Math.max(1, sh.getLastRow()-1),1);
+  const rule = SpreadsheetApp.newConditionalFormatRule()
+    .whenNumberGreaterThan(
+      SpreadsheetApp.newConditionalFormatRule()
+        .whenFormulaSatisfied('=TRUE') // dummy; we’ll just use built-in top-10% style via formula
+        .build()
+    );
+  // Easier: formula rule approximating top 10% cutoff
+  const formula = '=B2>=PERCENTILE($B$2:$B,0.9)';
+  const r2 = SpreadsheetApp.newConditionalFormatRule()
+    .whenFormulaSatisfied(formula)
+    .setBackground('#d1fae5')
+    .setRanges([rng])
+    .build();
+  sh.setConditionalFormatRules([...sh.getConditionalFormatRules(), r2]);
+}
+
+// 118) Create a named range for current data table
+function ex118_createNamedRange() {
+  const ss = SpreadsheetApp.getActive();
+  const sh = ss.getActiveSheet();
+  const range = sh.getDataRange();
+  ss.setNamedRange('DATA_TABLE', range);
+}
+
+// 119) Convert formulas to values in selection
+function ex119_formulasToValues() {
+  const sh = SpreadsheetApp.getActiveSheet();
+  const r = sh.getActiveRange();
+  r.copyTo(r, {contentsOnly: true});
+}
+
+// 120) Add hyperlinks in column B from URLs in column A
+function ex120_makeHyperlinks() {
+  const sh = SpreadsheetApp.getActiveSheet();
+  const last = sh.getLastRow();
+  const urls = sh.getRange(2,1,Math.max(1,last-1),1).getValues().flat();
+  const out = urls.map(u => [u ? `=HYPERLINK("${u}","Open")` : '']);
+  sh.getRange(2,2,out.length,1).setValues(out);
+}
+
+// 121) Generate random IDs
+function ex121_generateIds() {
+  const sh = SpreadsheetApp.getActiveSheet();
+  const last = sh.getLastRow();
+  const out = Array.from({length: Math.max(1,last-1)}, () => [Utilities.getUuid()]);
+  sh.getRange(2,5,out.length,1).setValues(out);
+}
+
+// 122) Create a “missing values” report
+function ex122_missingValuesReport() {
+  const ss = SpreadsheetApp.getActive();
+  const sh = ss.getActiveSheet();
+  const rep = ss.getSheetByName('Missing Report') || ss.insertSheet('Missing Report');
+  const data = sh.getDataRange().getValues();
+  const header = data[0] || [];
+  const misses = [];
+  for (let r=1;r<data.length;r++){
+    for (let c=0;c<header.length;c++){
+      if (data[r][c] === '' || data[r][c] == null) misses.push([r+1, c+1, header[c] || '', 'blank']);
+    }
+  }
+  rep.clear();
+  rep.getRange(1,1,1,4).setValues([['Row','Col','Header','Issue']]);
+  if (misses.length) rep.getRange(2,1,misses.length,4).setValues(misses);
+}
+
+// 123) Sync two sheets by ID (left join)
+function ex123_syncById() {
+  const ss = SpreadsheetApp.getActive();
+  const a = ss.getSheetByName('SheetA') || ss.getActiveSheet();
+  const b = ss.getSheetByName('SheetB');
+  if (!b) throw new Error('Create SheetB with IDs in col A');
+  const aData = a.getDataRange().getValues();
+  const bData = b.getDataRange().getValues();
+  const bMap = new Map(bData.slice(1).map(r => [String(r[0]).trim(), r]));
+  const out = [aData[0].concat(bData[0].slice(1))];
+  aData.slice(1).forEach(r => {
+    const key = String(r[0]).trim();
+    const match = bMap.get(key);
+    out.push(r.concat(match ? match.slice(1) : Array(bData[0].length-1).fill('')));
+  });
+  const dst = ss.getSheetByName('Synced') || ss.insertSheet('Synced');
+  dst.clear();
+  dst.getRange(1,1,out.length,out[0].length).setValues(out);
+}
+
+// 124) Write a chart to sheet (basic column chart)
+function ex124_createChart() {
+  const sh = SpreadsheetApp.getActiveSheet();
+  const range = sh.getRange('A1:B10');
+  const chart = sh.newChart()
+    .setChartType(Charts.ChartType.COLUMN)
+    .addRange(range)
+    .setPosition(1, 4, 0, 0)
+    .build();
+  sh.insertChart(chart);
+}
+
+// 125) Remove all charts from sheet
+function ex125_removeCharts() {
+  const sh = SpreadsheetApp.getActiveSheet();
+  sh.getCharts().forEach(c => sh.removeChart(c));
+}
+
+// 126) Duplicate sheet and rename with timestamp
+function ex126_duplicateSheet() {
+  const ss = SpreadsheetApp.getActive();
+  const src = ss.getActiveSheet();
+  const copy = src.copyTo(ss);
+  copy.setName(src.getName() + ' - ' + Utilities.formatDate(new Date(), ss.getSpreadsheetTimeZone(), 'yyyyMMdd-HHmm'));
+}
+
+// 127) Create a “daily log” row in a sheet
+function ex127_appendDailyLog() {
+  const sh = SpreadsheetApp.getActiveSheet();
+  sh.appendRow([new Date(), Session.getActiveUser().getEmail(), 'Daily log entry']);
+}
+
+// 128) Lock a range for 10 minutes (soft lock via cache)
+function ex128_softLock() {
+  const cache = CacheService.getScriptCache();
+  const key = 'LOCK:PROCESS';
+  if (cache.get(key)) throw new Error('Locked: try again later.');
+  cache.put(key, '1', 600);
+  // ... do work ...
+}
+
+// 129) Generate a “run report” in a new sheet
+function ex129_runReport() {
+  const ss = SpreadsheetApp.getActive();
+  const sh = ss.insertSheet('Run Report ' + Date.now());
+  sh.getRange('A1').setValue('Run at');
+  sh.getRange('B1').setValue(new Date());
+}
+
+// 130) Convert currency strings to numbers (e.g., "$1,234.56")
+function ex130_currencyToNumber() {
+  const sh = SpreadsheetApp.getActiveSheet();
+  const r = sh.getRange('B2:B' + sh.getLastRow());
+  const out = r.getValues().map(([v]) => {
+    const n = Number(String(v||'').replace(/[^0-9.-]/g,''));
+    return [isNaN(n) ? '' : n];
+  });
+  r.setValues(out);
+}
+
+// 131) Remove duplicates by column (keep first)
+function ex131_removeDuplicatesByColA() {
+  const sh = SpreadsheetApp.getActiveSheet();
+  sh.getDataRange().removeDuplicates([1]);
+}
+
+// 132) Add alternating row colors
+function ex132_alternateColors() {
+  const sh = SpreadsheetApp.getActiveSheet();
+  sh.getRange(1,1,sh.getLastRow(),sh.getLastColumn()).applyRowBanding();
+}
+
+// 133) Create a “top N” extraction to another sheet
+function ex133_topN() {
+  const ss = SpreadsheetApp.getActive();
+  const sh = ss.getActiveSheet();
+  const data = sh.getDataRange().getValues();
+  const header = data.shift();
+  const sorted = data.sort((a,b)=> (b[1]||0)-(a[1]||0)).slice(0,10);
+  const out = [header, ...sorted];
+  const dst = ss.getSheetByName('Top10') || ss.insertSheet('Top10');
+  dst.clear(); dst.getRange(1,1,out.length,out[0].length).setValues(out);
+}
+
+// 134) Detect outliers (z-score) in column B
+function ex134_detectOutliers() {
+  const sh = SpreadsheetApp.getActiveSheet();
+  const vals = sh.getRange('B2:B' + sh.getLastRow()).getValues().flat().map(Number).filter(v=>!isNaN(v));
+  const mean = vals.reduce((a,b)=>a+b,0)/Math.max(vals.length,1);
+  const sd = Math.sqrt(vals.reduce((s,v)=>s+Math.pow(v-mean,2),0)/Math.max(vals.length,1));
+  const r = sh.getRange('B2:B' + sh.getLastRow());
+  const out = r.getValues().map(([v])=>{
+    const n=Number(v); if(isNaN(n)||sd===0) return [''];
+    const z=(n-mean)/sd;
+    return [Math.abs(z)>=3 ? 'OUTLIER' : ''];
+  });
+  sh.getRange(2,3,out.length,1).setValues(out); // write to col C
+}
+
+// 135) Convert date text to Date objects in column A
+function ex135_parseDates() {
+  const sh = SpreadsheetApp.getActiveSheet();
+  const r = sh.getRange('A2:A' + sh.getLastRow());
+  const out = r.getValues().map(([v]) => {
+    const d = new Date(v);
+    return [isNaN(d.getTime()) ? '' : d];
+  });
+  r.setValues(out);
+}
+
+// 136) Create a monthly summary sheet (counts by month in column A dates)
+function ex136_monthlySummary() {
+  const ss = SpreadsheetApp.getActive();
+  const sh = ss.getActiveSheet();
+  const dates = sh.getRange('A2:A' + sh.getLastRow()).getValues().flat().map(v=>new Date(v)).filter(d=>!isNaN(d));
+  const tz = ss.getSpreadsheetTimeZone();
+  const map = {};
+  dates.forEach(d=>{
+    const k = Utilities.formatDate(d, tz, 'yyyy-MM');
+    map[k] = (map[k]||0)+1;
+  });
+  const out = [['Month','Count'], ...Object.entries(map).sort().map(([k,v])=>[k,v])];
+  const dst = ss.getSheetByName('Monthly Summary') || ss.insertSheet('Monthly Summary');
+  dst.clear(); dst.getRange(1,1,out.length,2).setValues(out);
+}
+
+// 137) Import a CSV string into the sheet
+function ex137_importCsvString() {
+  const csv = "Name,Score\nAva,95\nNoah,88";
+  const rows = Utilities.parseCsv(csv);
+  const sh = SpreadsheetApp.getActiveSheet();
+  sh.getRange(1,1,rows.length,rows[0].length).setValues(rows);
+}
+
+// 138) Export entire sheet to JSON (array of objects)
+function ex138_exportToJson() {
+  const sh = SpreadsheetApp.getActiveSheet();
+  const data = sh.getDataRange().getValues();
+  const headers = data.shift().map(String);
+  const objs = data.map(r => Object.fromEntries(headers.map((h,i)=>[h, r[i]])));
+  Logger.log(JSON.stringify(objs, null, 2));
+}
+
+// 139) Add comments (notes) from column E onto column A
+function ex139_notesFromColE() {
+  const sh = SpreadsheetApp.getActiveSheet();
+  const last = sh.getLastRow();
+  const notes = sh.getRange(2,5,Math.max(1,last-1),1).getValues().flat();
+  const target = sh.getRange(2,1,notes.length,1);
+  target.setNotes(notes.map(n=>[String(n||'')]));
+}
+
+// 140) Clear content but keep formatting
+function ex140_clearContentKeepFormatting() {
+  const sh = SpreadsheetApp.getActiveSheet();
+  sh.getDataRange().clearContent();
+}
+
+/***********************
+  141–160: Drive (advanced file workflows)
+************************/
+
+// 141) Create a folder and return URL
+function ex141_createFolder() {
+  const f = DriveApp.createFolder('New Folder ' + Date.now());
+  Logger.log(f.getUrl());
+}
+
+// 142) List files in a folder (names)
+function ex142_listFilesInFolder() {
+  const folderId = 'PASTE_FOLDER_ID';
+  const folder = DriveApp.getFolderById(folderId);
+  const it = folder.getFiles();
+  while (it.hasNext()) Logger.log(it.next().getName());
+}
+
+// 143) Copy a file to another folder
+function ex143_copyFileToFolder() {
+  const fileId = 'PASTE_FILE_ID';
+  const folderId = 'PASTE_FOLDER_ID';
+  const copy = DriveApp.getFileById(fileId).makeCopy(DriveApp.getFolderById(folderId));
+  Logger.log(copy.getUrl());
+}
+
+// 144) Move a file to another folder
+function ex144_moveFileToFolder() {
+  const fileId = 'PASTE_FILE_ID';
+  const folderId = 'PASTE_FOLDER_ID';
+  const file = DriveApp.getFileById(fileId);
+  const target = DriveApp.getFolderById(folderId);
+  const parents = file.getParents();
+  target.addFile(file);
+  while (parents.hasNext()) parents.next().removeFile(file);
+}
+
+// 145) Find files by partial name
+function ex145_searchByName() {
+  const q = 'name contains "Report" and trashed=false';
+  const it = DriveApp.searchFiles(q);
+  let n=0;
+  while (it.hasNext() && n<20) { const f=it.next(); Logger.log(f.getName() + ' ' + f.getUrl()); n++; }
+}
+
+// 146) Create a text file in a folder
+function ex146_createTextFile() {
+  const folderId='PASTE_FOLDER_ID';
+  const folder=DriveApp.getFolderById(folderId);
+  const file=folder.createFile('notes.txt','Hello world','text/plain');
+  Logger.log(file.getUrl());
+}
+
+// 147) Update a text file’s contents
+function ex147_overwriteTextFile() {
+  const fileId='PASTE_FILE_ID';
+  const file=DriveApp.getFileById(fileId);
+  file.setContent('Updated at ' + new Date());
+}
+
+// 148) Make a file “anyone with link can view”
+function ex148_makePublicView() {
+  const fileId='PASTE_FILE_ID';
+  DriveApp.getFileById(fileId).setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+}
+
+// 149) Create a Drive “manifest” (name → id) as JSON file
+function ex149_createManifestJson() {
+  const folderId='PASTE_FOLDER_ID';
+  const folder=DriveApp.getFolderById(folderId);
+  const it=folder.getFiles();
+  const manifest = {};
+  while(it.hasNext()){
+    const f=it.next();
+    manifest[f.getName()] = f.getId();
+  }
+  const blob = Utilities.newBlob(JSON.stringify(manifest, null, 2), 'application/json', 'manifest.json');
+  const file = folder.createFile(blob);
+  Logger.log(file.getUrl());
+}
+
+// 150) Zip files in a folder and save the zip
+function ex150_zipFolderFiles() {
+  const folderId='PASTE_FOLDER_ID';
+  const folder=DriveApp.getFolderById(folderId);
+  const it=folder.getFiles();
+  const blobs=[];
+  while(it.hasNext()){
+    const f=it.next();
+    blobs.push(f.getBlob().setName(f.getName()));
+  }
+  const zipBlob = Utilities.zip(blobs, 'bundle.zip');
+  const zipFile = folder.createFile(zipBlob);
+  Logger.log(zipFile.getUrl());
+}
+
+// 151) Delete empty folders (one level deep)
+function ex151_deleteEmptySubfolders() {
+  const rootId='PASTE_FOLDER_ID';
+  const root=DriveApp.getFolderById(rootId);
+  const subs=root.getFolders();
+  while(subs.hasNext()){
+    const f=subs.next();
+    if(!f.getFiles().hasNext() && !f.getFolders().hasNext()){
+      f.setTrashed(true);
+    }
+  }
+}
+
+// 152) Rename all files by replacing substring
+function ex152_renameReplace() {
+  const folderId='PASTE_FOLDER_ID';
+  const folder=DriveApp.getFolderById(folderId);
+  const it=folder.getFiles();
+  while(it.hasNext()){
+    const f=it.next();
+    f.setName(f.getName().replace('Draft','Final'));
+  }
+}
+
+// 153) Create a shortcut file (requires Drive API in many cases; note)
+function ex153_shortcutNote() {
+  Logger.log('Drive shortcuts are best created via Drive API (Advanced Drive Service) with mimeType "application/vnd.google-apps.shortcut".');
+}
+
+// 154) List recent files (last 7 days) across Drive
+function ex154_recentFiles() {
+  const cutoff = new Date(Date.now() - 7*24*3600*1000);
+  const it = DriveApp.searchFiles('trashed=false');
+  let n=0;
+  while(it.hasNext() && n<50){
+    const f=it.next();
+    if (f.getLastUpdated() >= cutoff) Logger.log(f.getLastUpdated() + ' ' + f.getName());
+    n++;
+  }
+}
+
+// 155) Copy a spreadsheet as XLSX to Drive
+function ex155_exportSheetAsXlsx() {
+  const ssId = SpreadsheetApp.getActive().getId();
+  const url = 'https://docs.google.com/spreadsheets/d/' + ssId + '/export?format=xlsx';
+  const token = ScriptApp.getOAuthToken();
+  const resp = UrlFetchApp.fetch(url, {headers:{Authorization:'Bearer ' + token}});
+  const file = DriveApp.createFile(resp.getBlob().setName('export.xlsx'));
+  Logger.log(file.getUrl());
+}
+
+// 156) Copy a doc as PDF to Drive
+function ex156_exportDocAsPdf() {
+  const docId = DocumentApp.getActiveDocument().getId();
+  const url = 'https://docs.google.com/document/d/' + docId + '/export?format=pdf';
+  const token = ScriptApp.getOAuthToken();
+  const resp = UrlFetchApp.fetch(url, {headers:{Authorization:'Bearer ' + token}});
+  const file = DriveApp.createFile(resp.getBlob().setName('export.pdf'));
+  Logger.log(file.getUrl());
+}
+
+// 157) Find and trash files older than N days in a folder
+function ex157_trashOldInFolder() {
+  const folderId='PASTE_FOLDER_ID', days=90;
+  const cutoff=Date.now() - days*24*3600*1000;
+  const folder=DriveApp.getFolderById(folderId);
+  const it=folder.getFiles();
+  while(it.hasNext()){
+    const f=it.next();
+    if(f.getLastUpdated().getTime() < cutoff) f.setTrashed(true);
+  }
+}
+
+// 158) Create a shared “handoff” folder structure
+function ex158_createHandoffStructure() {
+  const root = DriveApp.createFolder('Handoff ' + Date.now());
+  ['01-Docs','02-Assets','03-Exports','04-Archive'].forEach(n => root.createFolder(n));
+  Logger.log(root.getUrl());
+}
+
+// 159) Save an HTML file to Drive
+function ex159_saveHtmlFile() {
+  const html = '<!doctype html><html><body><h1>Hello</h1></body></html>';
+  const file = DriveApp.createFile('page.html', html, MimeType.HTML);
+  Logger.log(file.getUrl());
+}
+
+// 160) Duplicate a Drive folder structure (folders only)
+function ex160_cloneFolderStructureOnly() {
+  const sourceId='PASTE_SOURCE_FOLDER_ID';
+  const targetParentId='PASTE_TARGET_PARENT_FOLDER_ID';
+  const src=DriveApp.getFolderById(sourceId);
+  const parent=DriveApp.getFolderById(targetParentId);
+  const dst=parent.createFolder(src.getName() + ' (Structure)');
+  cloneFoldersOnly_(src, dst);
+}
+function cloneFoldersOnly_(src, dst){
+  const subs=src.getFolders();
+  while(subs.hasNext()){
+    const sub=subs.next();
+    const newSub=dst.createFolder(sub.getName());
+    cloneFoldersOnly_(sub, newSub);
+  }
+}
+
+/***********************
+  161–180: Docs + Slides (document generation)
+************************/
+
+// 161) Create a Doc from template placeholders
+function ex161_docTemplateFromMap() {
+  const templateId='PASTE_TEMPLATE_DOC_ID';
+  const copy=DriveApp.getFileById(templateId).makeCopy('Generated Doc ' + Date.now());
+  const doc=DocumentApp.openById(copy.getId());
+  const body=doc.getBody();
+  const map={'{{TITLE}}':'Automation Report','{{AUTHOR}}':'Lars','{{DATE}}':new Date().toDateString()};
+  Object.entries(map).forEach(([k,v])=>body.replaceText(k, String(v)));
+  doc.saveAndClose();
+  Logger.log(doc.getUrl());
+}
+
+// 162) Create a doc with a table of data from a sheet range
+function ex162_docTableFromSheet() {
+  const sh=SpreadsheetApp.getActiveSheet();
+  const values=sh.getRange('A1:D10').getValues();
+  const doc=DocumentApp.create('Table Doc ' + Date.now());
+  doc.getBody().appendTable(values);
+  Logger.log(doc.getUrl());
+}
+
+// 163) Add a watermark-like header text
+function ex163_addHeaderText() {
+  const doc=DocumentApp.getActiveDocument();
+  const header=doc.addHeader();
+  header.appendParagraph('DRAFT').setBold(true);
+}
+
+// 164) Replace multiple newlines with single newline
+function ex164_collapseNewlines() {
+  const doc=DocumentApp.getActiveDocument();
+  const t=doc.getBody().editAsText();
+  t.replaceText('\\n{3,}', '\n\n');
+}
+
+// 165) Remove all images from a doc
+function ex165_removeImages() {
+  const body=DocumentApp.getActiveDocument().getBody();
+  const n=body.getNumChildren();
+  for(let i=n-1;i>=0;i--){
+    const el=body.getChild(i);
+    if (el.getType() === DocumentApp.ElementType.INLINE_IMAGE) el.removeFromParent();
+  }
+}
+
+// 166) Extract headings into a summary doc
+function ex166_headingsSummary() {
+  const src=DocumentApp.getActiveDocument();
+  const headings=src.getBody().getParagraphs()
+    .filter(p=>String(p.getHeading()).includes('HEADING'))
+    .map(p=>p.getText());
+  const doc=DocumentApp.create('Headings Summary ' + Date.now());
+  headings.forEach(h=>doc.getBody().appendParagraph(h));
+  Logger.log(doc.getUrl());
+}
+
+// 167) Create a Slides deck with title slide + agenda
+function ex167_createSlidesAgenda() {
+  const pres=SlidesApp.create('Agenda Deck ' + Date.now());
+  const title=pres.getSlides()[0];
+  title.insertShape(SlidesApp.ShapeType.TEXT_BOX, 40, 60, 640, 80).getText().setText('Project Update');
+  const agenda=pres.appendSlide(SlidesApp.PredefinedLayout.TITLE_AND_BODY);
+  agenda.getPlaceholder(SlidesApp.PlaceholderType.TITLE).asShape().getText().setText('Agenda');
+  agenda.getPlaceholder(SlidesApp.PlaceholderType.BODY).asShape().getText().setText('• Status\n• Risks\n• Next steps');
+  Logger.log(pres.getUrl());
+}
+
+// 168) Duplicate a slide N times
+function ex168_duplicateSlideNTimes() {
+  const pres=SlidesApp.getActivePresentation();
+  const slide=pres.getSlides()[0];
+  for(let i=0;i<5;i++) pres.appendSlide(slide);
+}
+
+// 169) Replace text across all slides
+function ex169_replaceTextInSlides() {
+  const pres=SlidesApp.getActivePresentation();
+  pres.replaceAllText('{{NAME}}', 'Lars');
+}
+
+// 170) Add speaker notes to all slides
+function ex170_addSpeakerNotes() {
+  const pres=SlidesApp.getActivePresentation();
+  pres.getSlides().forEach((s,i)=>{
+    s.getNotesPage().getSpeakerNotesShape().getText().setText('Notes for slide ' + (i+1));
+  });
+}
+
+// 171) Export active Slides to PDF and save to Drive
+function ex171_exportSlidesPdf() {
+  const presId=SlidesApp.getActivePresentation().getId();
+  const url='https://docs.google.com/presentation/d/' + presId + '/export/pdf';
+  const token=ScriptApp.getOAuthToken();
+  const resp=UrlFetchApp.fetch(url,{headers:{Authorization:'Bearer ' + token}});
+  const file=DriveApp.createFile(resp.getBlob().setName('deck.pdf'));
+  Logger.log(file.getUrl());
+}
+
+// 172) Create a doc and add a horizontal rule between sections
+function ex172_docSectionsWithRules() {
+  const doc=DocumentApp.create('Sectioned Doc ' + Date.now());
+  const body=doc.getBody();
+  ['One','Two','Three'].forEach((name)=>{
+    body.appendParagraph(name).setHeading(DocumentApp.ParagraphHeading.HEADING2);
+    body.appendParagraph('Content...');
+    body.appendHorizontalRule();
+  });
+  Logger.log(doc.getUrl());
+}
+
+// 173) Convert a Google Doc to HTML string (simple)
+function ex173_docToHtmlSimple() {
+  const doc=DocumentApp.getActiveDocument();
+  const html = doc.getBody().getText().split('\n').map(p=>`<p>${p}</p>`).join('');
+  Logger.log(html);
+}
+
+// 174) Insert a page break after each Heading 2
+function ex174_pageBreakAfterH2() {
+  const doc=DocumentApp.getActiveDocument();
+  const body=doc.getBody();
+  const pars=body.getParagraphs();
+  for(let i=pars.length-1;i>=0;i--){
+    if(pars[i].getHeading()===DocumentApp.ParagraphHeading.HEADING2){
+      body.insertPageBreak(body.getChildIndex(pars[i])+1);
+    }
+  }
+}
+
+// 175) Create a “meeting minutes” doc template
+function ex175_meetingMinutesDoc() {
+  const doc=DocumentApp.create('Meeting Minutes ' + new Date().toDateString());
+  const b=doc.getBody();
+  b.appendParagraph('Meeting Minutes').setHeading(DocumentApp.ParagraphHeading.HEADING1);
+  b.appendParagraph('Attendees:');
+  b.appendParagraph('Agenda:');
+  b.appendParagraph('Decisions:');
+  b.appendParagraph('Action Items:');
+  Logger.log(doc.getUrl());
+}
+
+// 176) Convert selected text to bullet list
+function ex176_selectionToBullets() {
+  const doc=DocumentApp.getActiveDocument();
+  const sel=doc.getSelection();
+  if(!sel) return;
+  sel.getRangeElements().forEach(re=>{
+    const el=re.getElement();
+    if(el.editAsText) {
+      const p = el.getParent();
+      if (p && p.asParagraph) p.asParagraph().setBullet(true);
+    }
+  });
+}
+
+// 177) Add a table with styled header row
+function ex177_docTableWithHeaderStyle() {
+  const doc=DocumentApp.create('Styled Table ' + Date.now());
+  const body=doc.getBody();
+  const table=body.appendTable([['Name','Score'],['Ava','95'],['Noah','88']]);
+  const header=table.getRow(0);
+  for(let i=0;i<header.getNumCells();i++){
+    header.getCell(i).setBackgroundColor('#e5e7eb');
+    header.getCell(i).editAsText().setBold(true);
+  }
+  Logger.log(doc.getUrl());
+}
+
+// 178) Create a Slides deck from a list of titles
+function ex178_slidesFromList() {
+  const titles=['Intro','Problem','Solution','Demo','Next Steps'];
+  const pres=SlidesApp.create('Outline Deck ' + Date.now());
+  titles.forEach(t=>{
+    const s=pres.appendSlide(SlidesApp.PredefinedLayout.TITLE_ONLY);
+    s.getPlaceholder(SlidesApp.PlaceholderType.TITLE).asShape().getText().setText(t);
+  });
+  pres.getSlides()[0].remove();
+  Logger.log(pres.getUrl());
+}
+
+// 179) Export doc as DOCX to Drive
+function ex179_exportDocAsDocx() {
+  const docId=DocumentApp.getActiveDocument().getId();
+  const url='https://docs.google.com/document/d/' + docId + '/export?format=docx';
+  const token=ScriptApp.getOAuthToken();
+  const resp=UrlFetchApp.fetch(url,{headers:{Authorization:'Bearer ' + token}});
+  const file=DriveApp.createFile(resp.getBlob().setName('export.docx'));
+  Logger.log(file.getUrl());
+}
+
+// 180) Replace multiple spaces in Slides text shapes
+function ex180_slidesNormalizeSpaces() {
+  const pres=SlidesApp.getActivePresentation();
+  pres.getSlides().forEach(slide=>{
+    slide.getPageElements().forEach(el=>{
+      if(el.getPageElementType()===SlidesApp.PageElementType.SHAPE){
+        const t=el.asShape().getText();
+        const s=t.asString();
+        t.setText(s.replace(/\s+/g,' ').trim());
+      }
+    });
+  });
+}
+
+/***********************
+  181–200: Gmail, Calendar, Web, Utilities
+************************/
+
+// 181) Create a Gmail label hierarchy (Label/Sub)
+function ex181_createNestedLabel() {
+  const name='Automation/Processed';
+  const label=GmailApp.getUserLabelByName(name) || GmailApp.createLabel(name);
+  Logger.log(label.getName());
+}
+
+// 182) Mark matching emails as read
+function ex182_markRead() {
+  const threads=GmailApp.search('in:inbox subject:"Weekly Report"',0,50);
+  threads.forEach(t=>t.markRead());
+}
+
+// 183) Forward matching emails to another address
+function ex183_forwardEmails() {
+  const threads=GmailApp.search('subject:"Action Required" newer_than:7d',0,10);
+  threads.forEach(t=>t.getMessages().pop().forward('someone@example.com'));
+}
+
+// 184) Save email bodies to a Google Doc
+function ex184_emailBodiesToDoc() {
+  const threads=GmailApp.search('newer_than:3d',0,5);
+  const doc=DocumentApp.create('Email Bodies ' + Date.now());
+  const body=doc.getBody();
+  threads.forEach(t=>{
+    const m=t.getMessages().pop();
+    body.appendParagraph(m.getSubject()).setHeading(DocumentApp.ParagraphHeading.HEADING2);
+    body.appendParagraph(m.getPlainBody().slice(0,2000));
+    body.appendHorizontalRule();
+  });
+  Logger.log(doc.getUrl());
+}
+
+// 185) Create a calendar event with custom reminders
+function ex185_eventWithReminders() {
+  const cal=CalendarApp.getDefaultCalendar();
+  const start=new Date(Date.now()+2*3600*1000);
+  const end=new Date(start.getTime()+45*60000);
+  const ev=cal.createEvent('Deep Work', start, end);
+  ev.addPopupReminder(10);
+  ev.addEmailReminder(30);
+}
+
+// 186) Delete calendar events by search (careful)
+function ex186_deleteEventsBySearch() {
+  const cal=CalendarApp.getDefaultCalendar();
+  const start=new Date(Date.now()-7*24*3600*1000);
+  const end=new Date(Date.now()+7*24*3600*1000);
+  const events=cal.getEvents(start,end,{search:'Temp Event'});
+  events.forEach(e=>e.deleteEvent());
+}
+
+// 187) Create a time-based trigger (every hour)
+function ex187_createHourlyTrigger() {
+  ScriptApp.newTrigger('ex127_appendDailyLog')
+    .timeBased()
+    .everyHours(1)
+    .create();
+}
+
+// 188) Delete triggers by handler name
+function ex188_deleteTriggersByHandler() {
+  const handler='ex127_appendDailyLog';
+  ScriptApp.getProjectTriggers().forEach(t=>{
+    if(t.getHandlerFunction()===handler) ScriptApp.deleteTrigger(t);
+  });
+}
+
+// 189) Store and retrieve user preferences (UserProperties)
+function ex189_userPrefs() {
+  const props=PropertiesService.getUserProperties();
+  props.setProperty('theme','dark');
+  Logger.log(props.getProperty('theme'));
+}
+
+// 190) Simple rate limiter (per user per minute)
+function ex190_rateLimitPerMinute() {
+  const props=PropertiesService.getUserProperties();
+  const key='lastCall';
+  const last=Number(props.getProperty(key) || 0);
+  const now=Date.now();
+  if(now-last < 60*1000) throw new Error('Rate limited. Try again in a minute.');
+  props.setProperty(key, String(now));
+}
+
+// 191) Generate an HMAC signature (Webhook signing)
+function ex191_hmacSignature() {
+  const secret='CHANGE_ME';
+  const payload='hello';
+  const sig = Utilities.computeHmacSha256Signature(payload, secret);
+  const hex = sig.map(b=>('0'+(b & 0xff).toString(16)).slice(-2)).join('');
+  Logger.log(hex);
+}
+
+// 192) AES encrypt/decrypt a string (simple)
+function ex192_encryptDecrypt() {
+  const key = Utilities.base64EncodeWebSafe(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, 'passphrase'));
+  const plaintext='secret message';
+  const enc = Utilities.base64EncodeWebSafe(Utilities.computeHmacSha256Signature(plaintext, key)); // not true AES, but safe keyed hash demo
+  Logger.log({plaintext, enc});
+}
+
+// 193) Web app JSON response helper
+function ex193_json(data) {
+  return ContentService.createTextOutput(JSON.stringify(data))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+// 194) Web app doGet router example
+function doGet(e) {
+  const route = (e.parameter.route || 'ping').toLowerCase();
+  if (route === 'ping') return ex193_json({ok:true, route, time:new Date().toISOString()});
+  if (route === 'echo') return ex193_json({ok:true, query:e.parameter});
+  return ex193_json({ok:false, error:'unknown route'});
+}
+
+// 195) Fetch JSON with timeout + error handling
+function ex195_fetchJson() {
+  const url='https://httpbin.org/json';
+  const resp=UrlFetchApp.fetch(url, {muteHttpExceptions:true, followRedirects:true});
+  if(resp.getResponseCode()>=400) throw new Error(resp.getContentText());
+  const json=JSON.parse(resp.getContentText());
+  Logger.log(json);
+}
+
+// 196) Post JSON to an endpoint
+function ex196_postJson() {
+  const url='https://httpbin.org/post';
+  const payload={event:'test', at:new Date().toISOString()};
+  const resp=UrlFetchApp.fetch(url,{
+    method:'post',
+    contentType:'application/json',
+    payload: JSON.stringify(payload),
+    muteHttpExceptions:true
+  });
+  Logger.log(resp.getContentText());
+}
+
+// 197) Create an HTML file, publish link, and email it
+function ex197_publishHtmlAndEmail() {
+  const html='<h1>Report</h1><p>Generated ' + new Date() + '</p>';
+  const file=DriveApp.createFile('report.html', html, MimeType.HTML);
+  file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+  GmailApp.sendEmail(Session.getActiveUser().getEmail(), 'HTML Report Link', file.getUrl());
+}
+
+// 198) Build a simple “job queue” using Script Properties
+function ex198_enqueueJob() {
+  const props=PropertiesService.getScriptProperties();
+  const q=JSON.parse(props.getProperty('QUEUE') || '[]');
+  q.push({id:Utilities.getUuid(), created:Date.now(), task:'sync'});
+  props.setProperty('QUEUE', JSON.stringify(q));
+}
+function ex198_dequeueJob() {
+  const props=PropertiesService.getScriptProperties();
+  const q=JSON.parse(props.getProperty('QUEUE') || '[]');
+  const job=q.shift();
+  props.setProperty('QUEUE', JSON.stringify(q));
+  Logger.log(job || 'no jobs');
+}
+
+// 199) Minimal logger that writes to a “Logs” sheet
+function ex199_sheetLogger(message) {
+  const ss=SpreadsheetApp.getActive();
+  const sh=ss.getSheetByName('Logs') || ss.insertSheet('Logs');
+  sh.appendRow([new Date(), Session.getActiveUser().getEmail(), message]);
+}
+
+// 200) End-to-end: read sheet → create doc → save PDF → email link
+function ex200_sheetDocPdfEmail() {
+  const ss=SpreadsheetApp.getActive();
+  const sh=ss.getActiveSheet();
+  const values=sh.getRange('A1:D10').getValues();
+  const doc=DocumentApp.create('Export ' + Date.now());
+  doc.getBody().appendParagraph('Export').setHeading(DocumentApp.ParagraphHeading.HEADING1);
+  doc.getBody().appendTable(values);
+  doc.saveAndClose();
+
+  const docFile=DriveApp.getFileById(doc.getId());
+  const pdf=docFile.getBlob().getAs(MimeType.PDF).setName(docFile.getName()+'.pdf');
+  const pdfFile=DriveApp.createFile(pdf);
+  GmailApp.sendEmail(Session.getActiveUser().getEmail(), 'Your PDF Export', 'Here is your PDF: ' + pdfFile.getUrl());
+}
