@@ -1,0 +1,50 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<base target="_top">
+</head>
+
+<body style="font-family:Arial;padding:14px;">
+
+<h2>AI Formula Generator</h2>
+
+<label><b>Describe the formula</b></label>
+
+<textarea id="prompt" style="width:100%;height:90px;">
+Example: Sum column B where column C equals Closed
+</textarea>
+
+<button onclick="generate()">Generate Formula</button>
+<button onclick="insert()">Insert Formula</button>
+
+<pre id="output" style="white-space:pre-wrap;margin-top:12px;"></pre>
+
+<script>
+
+function generate(){
+
+document.getElementById("output").textContent="Generating..."
+
+google.script.run
+.withSuccessHandler(res=>{
+document.getElementById("output").textContent=res
+})
+.generateFormula(
+document.getElementById("prompt").value
+)
+
+}
+
+function insert(){
+
+const formula=document.getElementById("output").textContent
+
+google.script.run.insertFormula(formula)
+
+}
+
+</script>
+
+</body>
+</html>
