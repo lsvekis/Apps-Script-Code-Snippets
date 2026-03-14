@@ -1,0 +1,131 @@
+<script>
+  function setStatus(msg) {
+    document.getElementById('status').textContent = msg || '';
+  }
+
+  function escapeHtml(text) {
+    return String(text || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+
+  function renderHistory(history) {
+    const el = document.getElementById('history');
+    if (!history || !history.length) {
+      el.innerHTML = '<div class="history-item"><div class="history-text">No chat history yet.</div></div>';
+      return;
+    }
+
+    el.innerHTML = history.map(item => `
+      <div class="history-item">
+        <div class="history-role">${escapeHtml(item.role)}</div>
+        <div class="history-text">${escapeHtml(item.text)}</div>
+      </div>
+    `).join('');
+  }
+
+  function fillSettings(data) {
+    const sheetSelect = document.getElementById('sheetName');
+    sheetSelect.innerHTML = '';
+
+    data.sheets.forEach(name => {
+      const option = document.createElement('option');
+      option.value = name;
+      option.textContent = name;
+      if (name === data.config.sheetName) option.selected = true;
+      sheetSelect.appendChild(option);
+    });
+
+    document.getElementById('model').value = data.config.model || 'gemini-2.5-flash';
+    document.getElementById('maxRows').value = data.config.maxRows || 150;
+    document.getElementById('temperature').value = data.config.temperature || 0.1;
+    document.getElementById('historySize').value = data.config.historySize || 12;
+    document.getElementById('allowRowCitations').checked = !!data.config.allowRowCitations;
+
+    renderHistory(data.history || []);
+  }
+
+  function loadSidebar() {
+    setStatus('Loading...');
+    google.script.run
+      .withSuccessHandler(data => {
+        fillSettings(data);
+        setStatus('Ready.');
+      })
+      .withFailureHandler(err => {
+        setStatus('Error loading sidebar: ' + err.message);
+      })
+      .getSidebarData();
+  }
+
+  function askBot() {
+    const question = document.getElementById('question').value.trim();
+    if (!question) {
+      setStatus('Please enter a question.');
+      return;
+    }
+
+    document.getElementById('answer').textContent = 'Thinking...';
+    document.getElementById('meta').textContent = '';
+    setStatus('Sending request...');
+
+    google.script.run
+      .withSuccessHandler(result => {
+        document.getElementById('answer').textContent = result.answer || '';
+        if (result.meta) {
+          document.getElementById('meta').textContent =
+            `Sheet: ${result.meta.sheetName} | Rows used: ${result.meta.rowsUsedForAnswer} | Total rows: ${result.meta.totalRowsInSheet}`;
+        }
+        renderHistory(result.history || []);
+        setStatus('Done.');
+      })
+      .withFailureHandler(err => {
+        document.getElementById('answer').textContent = 'Error: ' + err.message;
+        setStatus('Request failed.');
+      })
+      .askSpreadsheetChatbot(question);
+  }
+
+  function clearQuestion() {
+    document.getElementById('question').value = '';
+    setStatus('');
+  }
+
+  function saveSettings() {
+    const payload = {
+      sheetName: document.getElementById('sheetName').value,
+      model: document.getElementById('model').value.trim(),
+      maxRows: Number(document.getElementById('maxRows').value || 150),
+      temperature: Number(document.getElementById('temperature').value || 0.1),
+      historySize: Number(document.getElementById('historySize').value || 12),
+      allowRowCitations: document.getElementById('allowRowCitations').checked
+    };
+
+    setStatus('Saving settings...');
+    google.script.run
+      .withSuccessHandler(data => {
+        fillSettings(data);
+        setStatus('Settings saved.');
+      })
+      .withFailureHandler(err => {
+        setStatus('Error saving settings: ' + err.message);
+      })
+      .saveSettings(payload);
+  }
+
+  function resetHistory() {
+    setStatus('Resetting history...');
+    google.script.run
+      .withSuccessHandler(() => {
+        renderHistory([]);
+        setStatus('History reset.');
+      })
+      .withFailureHandler(err => {
+        setStatus('Error resetting history: ' + err.message);
+      })
+      .resetChatHistory();
+  }
+
+  document.addEventListener('DOMContentLoaded', loadSidebar);
+</script>

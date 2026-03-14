@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <?!= include('styles'); ?>
+  </head>
+  <body>
+    <div class="app">
+      <div class="header">
+        <h2>Sheet Chatbot</h2>
+        <div class="sub">Grounded answers from one spreadsheet tab only</div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Ask a question</div>
+        <textarea id="question" placeholder="Example: Which employees are active in Sales?"></textarea>
+        <div class="actions">
+          <button class="primary" onclick="askBot()">Ask</button>
+          <button onclick="clearQuestion()">Clear</button>
+        </div>
+        <div id="status" class="status"></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Answer</div>
+        <div id="answer" class="answer">No answer yet.</div>
+        <div id="meta" class="meta"></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Settings</div>
+        <label>Sheet</label>
+        <select id="sheetName"></select>
+
+        <label>Model</label>
+        <input id="model" type="text" placeholder="gemini-2.5-flash">
+
+        <label>Max rows to send</label>
+        <input id="maxRows" type="number" min="10" max="500">
+
+        <label>Temperature</label>
+        <input id="temperature" type="number" min="0" max="1" step="0.1">
+
+        <label>Chat history size</label>
+        <input id="historySize" type="number" min="2" max="50">
+
+        <label class="checkbox-row">
+          <input id="allowRowCitations" type="checkbox">
+          <span>Allow row citations</span>
+        </label>
+
+        <div class="actions">
+          <button onclick="saveSettings()">Save Settings</button>
+          <button onclick="resetHistory()">Reset History</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Chat history</div>
+        <div id="history" class="history"></div>
+      </div>
+    </div>
+
+    <?!= include('scripts'); ?>
+  </body>
+</html>
