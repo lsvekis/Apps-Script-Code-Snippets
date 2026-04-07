@@ -1,0 +1,7 @@
+<textarea id="prompt"></textarea>
+<button onclick="run()">Generate</button>
+<script>
+function run(){
+ google.script.run.generateEmail(document.getElementById("prompt").value)
+}
+</script>
