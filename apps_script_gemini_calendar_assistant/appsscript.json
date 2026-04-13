@@ -1,0 +1,8 @@
+{
+  "timeZone": "America/Toronto",
+  "oauthScopes": [
+    "https://www.googleapis.com/auth/calendar",
+    "https://www.googleapis.com/auth/script.container.ui",
+    "https://www.googleapis.com/auth/script.external_request"
+  ]
+}

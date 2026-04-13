@@ -1,0 +1,7 @@
+<textarea id="prompt"></textarea>
+<button onclick="run()">Create</button>
+<script>
+function run(){
+ google.script.run.createEventFromPrompt(document.getElementById("prompt").value)
+}
+</script>
