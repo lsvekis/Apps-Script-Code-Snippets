@@ -1,0 +1,1 @@
+function generateTests(code){return code;}
