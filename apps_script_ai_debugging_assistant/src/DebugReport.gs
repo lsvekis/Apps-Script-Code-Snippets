@@ -1,0 +1,1 @@
+function createDebugReport_(a){return 'ok';}
