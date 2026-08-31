@@ -1,0 +1,1 @@
+function toolCreateGmailDraft_(a,u){if(!a)throw new Error("No analysis.");const b=callGemini(`Create a concise professional email summary. Do not invent a recipient. Analysis: ${a}\nReport: ${u||"none"}`,"");return {subject:"Sales Analysis Report",body:b,status:"Email content prepared. No email was sent."};}

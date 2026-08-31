@@ -1,0 +1,1 @@
+function toolReadSheetData_(){const s=SpreadsheetApp.getActiveSheet(),lr=s.getLastRow(),lc=s.getLastColumn();if(!lr||!lc)throw new Error("No data.");const n=Math.min(lr,100);return {sheetName:s.getName(),totalRows:lr,rowsRead:n,data:s.getRange(1,1,n,lc).getDisplayValues()};}

@@ -1,0 +1,1 @@
+function getAvailableTools_(){return [{name:"readSheetData",risk:"LOW"},{name:"analyzeData",risk:"LOW"},{name:"createGoogleDoc",risk:"MEDIUM"},{name:"createGmailDraft",risk:"MEDIUM"}];}

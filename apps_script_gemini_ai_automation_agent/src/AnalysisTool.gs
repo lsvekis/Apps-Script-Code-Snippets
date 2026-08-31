@@ -1,0 +1,1 @@
+function toolAnalyzeData_(d){if(!d)throw new Error("No data.");return callGemini("Analyze this spreadsheet data. Identify trends, anomalies, observations and recommended actions. Do not invent facts.\n"+JSON.stringify(d),"");}

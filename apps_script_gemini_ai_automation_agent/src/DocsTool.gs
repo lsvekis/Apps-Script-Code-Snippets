@@ -1,0 +1,1 @@
+function toolCreateGoogleDoc_(a){if(!a)throw new Error("No analysis.");const d=DocumentApp.create("AI Sales Analysis");d.getBody().appendParagraph("AI Sales Analysis").setHeading(DocumentApp.ParagraphHeading.TITLE);d.getBody().appendParagraph(a);return {documentId:d.getId(),documentUrl:d.getUrl()};}

@@ -1,0 +1,2 @@
+function onOpen(){SpreadsheetApp.getUi().createMenu("AI Tools").addItem("AI Automation Agent","showAgentSidebar").addToUi();}
+function showAgentSidebar(){SpreadsheetApp.getUi().showSidebar(HtmlService.createHtmlOutputFromFile("Sidebar").setTitle("AI Automation Agent"));}

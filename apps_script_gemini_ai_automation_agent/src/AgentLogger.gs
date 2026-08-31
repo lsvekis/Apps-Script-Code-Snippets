@@ -1,0 +1,1 @@
+function writeAgentLog_(p,l){const ss=SpreadsheetApp.getActive();let s=ss.getSheetByName("Agent Log");if(!s){s=ss.insertSheet("Agent Log");s.appendRow(["Timestamp","Goal","Tool","Success"])}l.forEach(x=>s.appendRow([new Date(),p.goal,x.tool,x.success]));}
