@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <style>
+    body{font-family:Arial,sans-serif;padding:14px}textarea{width:100%;height:130px;box-sizing:border-box}button{margin-top:10px;padding:9px 14px}pre{margin-top:15px;padding:10px;background:#f5f5f5;white-space:pre-wrap}
+  </style>
+</head>
+<body>
+  <h2>Multi-Agent AI Workflow</h2>
+  <p>What should the AI team investigate?</p>
+  <textarea id="request">Analyze this sales data and create an executive performance report with key trends, concerns, opportunities, and recommended actions.</textarea>
+  <button id="runButton" onclick="runWorkflow()">Run AI Team</button>
+  <pre id="status">Ready.</pre>
+<script>
+function runWorkflow(){
+  const request=document.getElementById('request').value;
+  const button=document.getElementById('runButton');
+  const status=document.getElementById('status');
+  if(!request.trim()){status.textContent='Enter a request.';return;}
+  button.disabled=true;status.textContent='Running multi-agent workflow...';
+  google.script.run.withSuccessHandler(function(r){
+    button.disabled=false;
+    status.textContent='Workflow complete.\n\nWorkflow ID: '+r.workflowId+'\nReview: '+r.review.status+'\nScore: '+r.review.score+'/100\n\nReport:\n'+r.documentUrl;
+  }).withFailureHandler(function(e){button.disabled=false;status.textContent='Error: '+e.message;}).runMultiAgentWorkflow(request);
+}
+</script>
+</body>
+</html>
